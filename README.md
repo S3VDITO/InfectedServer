@@ -9,6 +9,10 @@ This script is made to make changes to the infection mode gameplay.
 * Lunge Zones (On maps: Resistance, Terminal, Underground)
 * Anticamp system (If used MOAB or Juggernaut)
 
+## Bugs
+* Knife kills sometimes break a series of killers and cannot be used later (bomb killings too)
+* If you call more than 8 helicopter, the server will shut down (not a bug, just for now I'm too lazy to check for the number of helicopters in air)
+
 ## TODO
 * AC130
 * Remote turret on PaveLow
