@@ -1,0 +1,6 @@
+C:\Games\Call of Duty - Modern Warfare 3\scripts\InfectedServer.auto.dll
+C:\Games\Call of Duty - Modern Warfare 3\scripts\InfectedServer.auto.pdb
+C:\Users\S3VDIT0\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedServer.csprojAssemblyReference.cache
+C:\Users\S3VDIT0\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedServer.csproj.CopyComplete
+C:\Users\S3VDIT0\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedServer.auto.dll
+C:\Users\S3VDIT0\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedServer.auto.pdb
