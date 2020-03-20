@@ -8,7 +8,57 @@ namespace InfectedServer
 {
     public static class ModelClass
     {
-        
+        public static string getBotModelsForLevel(bool head)
+        {
+            switch (Function.Call<string>("GetDvar"))
+            {
+                case "mp_exchange":
+                case "mp_hardhat":
+                case "mp_underground":
+                case "mp_boardwalk":
+                case "mp_nola":
+                case "mp_overwatch":
+                    if (!head) return "mp_body_russian_military_assault_a_airborne";
+                    return "head_russian_military_aa";
+                case "mp_cement":
+                case "mp_crosswalk_ss":
+                case "mp_roughneck":
+                    if (!head) return "mp_body_russian_military_smg_a_airborne";
+                    return "head_russian_military_aa";
+                case "mp_seatown":
+                case "mp_aground_ss":
+                case "mp_burn_ss":
+                case "mp_courtyard_ss":
+                case "mp_italy":
+                case "mp_meteora":
+                case "mp_qadeem":
+                case "mp_morningwood":
+                    if (!head) return "mp_body_henchmen_assault_a";
+                    return "head_henchmen_a";
+                case "mp_interchange":
+                case "mp_lambeth":
+                case "mp_six_ss":
+                case "mp_moab":
+                case "mp_park":
+                    if (!head) return "mp_body_russian_military_assault_a_woodland";
+                    return "head_russian_military_a";
+                case "mp_mogadishu":
+                case "mp_carbon":
+                case "mp_village":
+                case "mp_bravo":
+                case "mp_shipbreaker":
+                    if (!head) return "mp_body_africa_militia_assault_a";
+                    return "head_africa_militia_a_mp";
+                case "mp_radar":
+                    if (!head) return "mp_body_russian_military_assault_a_arctic";
+                    return "head_russian_military_aa_arctic";
+                default:
+                    if (!head) return "mp_body_russian_military_assault_a";
+                    return "head_russian_military_aa";
+            }
+        }
+
+
         public static void SetModelAlive(this Entity player)
         {
             switch (Function.Call<string>("GetMapCustom", "axischar"))
@@ -193,5 +243,4 @@ namespace InfectedServer
         }
         
     }
-}
-*/
+}*/

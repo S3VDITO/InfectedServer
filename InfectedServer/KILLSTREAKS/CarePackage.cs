@@ -90,7 +90,7 @@ namespace InfectedServer.KILLSTREAKS
             {
                 time--;
 
-                if (!owner.IsAlive || !owner.IsPlayer || time == 0 || owner.HasField("juggernaut_use"))
+                if (!owner.IsAlive || !owner.IsPlayer || time == 0 || owner.HasField("juggernaut"))
                 {
                     DeleteCrate(crate, WayPoint, BARS);
                     return false;
@@ -182,6 +182,10 @@ namespace InfectedServer.KILLSTREAKS
 
             AfterDelay(750, () =>
             {
+                Notify("set_vest_armor", self);
+
+                self.Call("SetViewModel", "viewhands_juggernaut_ally");
+
                 Notify("ShowStreakHUD", self, "Blast Shield Pro", GetKillstreakDpadIcon("_specialty_blastshield_ks_pro"), "Proficiency: Kick", "achieve_blastshield", "earn_perk");
 
                 self.SetPerk("_specialty_blastshield", true, true);
@@ -228,7 +232,7 @@ namespace InfectedServer.KILLSTREAKS
 
                 AfterDelay(250, () =>
                 {
-                    Notify("ShowStreakHUD", self, "Marksman Pro", GetKillstreakDpadIcon("specialty_scavenger_ks_pro"), "Proficiency: Damage", "achieve_scavenger", "earn_perk");
+                    Notify("ShowStreakHUD", self, "Scavenger Pro", GetKillstreakDpadIcon("specialty_scavenger_ks_pro"), "Proficiency: Damage", "achieve_scavenger", "earn_perk");
 
                     self.SetPerk("specialty_scavenger", true, true);
                     self.SetPerk("specialty_extraammo", true, true);
@@ -315,27 +319,21 @@ namespace InfectedServer.KILLSTREAKS
         {
             AfterDelay(150, () =>
             {
-
-                self.SetField("juggernaut", new Parameter(self.CreateTemplateOverlay("goggles_overlay")));
-                self.SetField("juggernaut_use", true);
-                self.SetField("juggernaut_armor", 700);
-
                 self.Call("DetachAll");
                 self.Call("ShowAllParts");
+
+                Notify("set_juggernaut_armor", self);
 
                 self.Call("SetViewModel", "viewhands_juggernaut_opforce");
                 self.Call("SetModel", "mp_fullbody_opforce_juggernaut");
 
                 self.TakeAllWeapons();
 
-                string PrimaryWeapon = BuildWeapon(WeaponClass.Type.LMG, 11);
-                string SecondaryWeapon = "iw5_g18_mp_akimbo_xmags";
+                string PrimaryWeapon = "iw5_m60jugg_mp_thermal_heartbeat_silencer_xmags_camo07";
+                string SecondaryWeapon = "iw5_fmg9_mp_akimbo_xmags_silencer";
 
                 string PrimaryOffhand = "";
                 string SecondaryOffhand = "smoke_grenade_mp";
-
-                self.Health = 100;
-                self.SetField("MaxHealth", 100);
 
                 self.GiveWeapon(PrimaryWeapon);
                 self.Call("GiveMaxAmmo", PrimaryWeapon);

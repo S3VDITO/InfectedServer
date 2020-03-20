@@ -14,8 +14,12 @@ namespace InfectedServer.KILLSTREAKS
         {
             OnNotify("cobra", (owner, pos) => CallCobra(owner.As<Entity>(), pos.As<Vector3>()));
             OnNotify("harrier", (owner, pos) => CallHarrier(owner.As<Entity>(), pos.As<Vector3>()));
-           // OnNotify("jugg", (owner, pos) => C130_START(owner.As<Entity>(), pos.As<Vector3>()));
-            OnNotify("jugg", (owner, pos) => CallOsprey(owner.As<Entity>(), pos.As<Vector3>()));
+
+            // C130 Jugg
+            OnNotify("jugg", (owner, pos) => C130_START(owner.As<Entity>(), pos.As<Vector3>()));
+
+            // Osprey Jugg
+           // OnNotify("jugg", (owner, pos) => CallOsprey(owner.As<Entity>(), pos.As<Vector3>()));
         }
 
         #region COBRA
@@ -79,7 +83,7 @@ namespace InfectedServer.KILLSTREAKS
 
             AfterDelay(7500, () =>
             {
-                Notify("run_crate", owner, goal + new Vector3(0, 0, AIR_HEIGHT), new Vector3(0,0, 1), "com_plasticcase_friendly", "airdrop_juggernaut", true);
+                Notify("run_crate", owner, new Vector3(goal.X, goal.Y, AIR_HEIGHT), new Vector3(), "com_plasticcase_friendly", "airdrop_juggernaut", true);
             });
             AfterDelay(15000, () => { c130.Call("delete"); });
         }
@@ -106,7 +110,7 @@ namespace InfectedServer.KILLSTREAKS
 
             AfterDelay(6500, () =>
             {
-                Notify("run_crate", self, harrier.Origin, new Vector3(0, 0, 1), "com_plasticcase_friendly", "airdrop_assault", true);
+                Notify("run_crate", self, harrier.Origin, new Vector3(0, 0, 0), "com_plasticcase_friendly", "airdrop_assault", true);
                 harrier.Call("SetMaxPitchRoll", 20, 30);
                 AfterDelay(1000, () =>
                 {
@@ -139,7 +143,7 @@ namespace InfectedServer.KILLSTREAKS
 
         #endregion
 
-        #region GuardDrop
+        #region Osprey Drop
         private static Entity Osprey(Entity self, Vector3 startPath, Vector3 forward)
         {
             Entity osprey = Function.Call<Entity>("SpawnHelicopter", self, startPath, forward, "osprey_player_mp", "vehicle_v22_osprey_body_mp");
@@ -237,8 +241,10 @@ namespace InfectedServer.KILLSTREAKS
         };
         #endregion
 
+        #region Osprey Gunner
+        #endregion
+
         #region PaveLow
-        
         #endregion
 
         public Vector3 GetPathStart(Vector3 coord, float yaw )

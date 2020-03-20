@@ -12,40 +12,26 @@ namespace InfectedServer
 {
     public class AntiCampClass : BaseScript
     {
+        private List<Entity> AnticamperList = new List<Entity>();
+
         private int AnticampExplosive = Function.Call<int>("loadfx", "explosions/tanker_explosion");
 
         public AntiCampClass()
         {
-            // Player Status Cheker
-            OnInterval(1000, () =>
-            {
-                foreach (Entity player in Players.Where(p => p.GetField<string>("SessionTeam") == "allies"))
-                {
-                    if (player.HasField("anticamp_status"))
-                        continue;
-
-                    if (player.Call<int>("GetPlayerData", "killstreaksState", "icons", 0) == MOAB_INDEX &&
-                    player.Call<int>("GetPlayerData", "killstreaksState", "hasStreak", 0) == 1)
-                    {
-                        player.Call("iPrintLnBold", "^1ANTICAMP^7: ^2USE MOAB ^5AND ^1RUN");
-                        player.SetField("anticamp_status", true);
-                        AfterDelay(7500, () => StartAntiCamp(player));
-                    }
-                    else if (player.HasField("juggernaut_use"))
-                    {
-                        player.Call("iPrintLnBold", "^1ANTICAMP^7: ^2JUGGERNAUT ^5MUST ^1RUN");
-                        player.SetField("anticamp_status", true);
-                        AfterDelay(7500, () => StartAntiCamp(player));
-                    }
-                }
-                return true;
-            });
-
+            OnNotify("anticamp_start", (player) => StartAntiCamp(player.As<Entity>()));
         }
 
         private void StartAntiCamp(Entity player)
         {
+            if (AnticamperList.Contains(player))
+                return;
+
+            AnticamperList.Add(player);
+
             Vector3 oldPos = player.Origin;
+
+            player.Call("iPrintLnBold", "^1Ruuuuuuuuuuuuuun!");
+            PlayLeaderDialog(player, "pushforward");
 
             player.OnInterval(7500, p =>
             {
@@ -54,17 +40,17 @@ namespace InfectedServer
                 if (player.CurrentWeapon.Contains("ac130"))
                     return true;
 
-                if (oldPos.DistanceTo(player.Origin) < 720)
+                if (oldPos.DistanceTo(player.Origin) < 512)
                 {
-                 player.Call("iPrintLnBold", "^1ANTICAMP^7: ^2RUN OR DIE!");
+                 player.Call("iPrintLnBold", "^1Run or die!");
 
                     PlayLeaderDialog(player, "pushforward");
 
 
-                    if(player.HasField("juggernaut_use"))
-                        Function.Call("RadiusDamage", player.Origin, 10, 150, 150, player, "MOD_EXPLOSIVE", "bomb_site_mp");
+                    if(player.Health > 200)
+                        Function.Call("RadiusDamage", player.Origin, 10, 100, 100, player, "MOD_EXPLOSIVE", "bomb_site_mp");
 
-                    if (!player.HasField("juggernaut_use"))
+                    if (player.Health <= 100)
                         Function.Call("RadiusDamage", player.Origin, 10, 20, 20, player, "MOD_EXPLOSIVE", "bomb_site_mp");
 
 
@@ -87,7 +73,6 @@ namespace InfectedServer
 
                 Function.Call("playSoundAtPos", player.Origin, "exp_suitcase_bomb_main");
             }
-            base.OnPlayerKilled(player, inflictor, attacker, damage, mod, weapon, dir, hitLoc);
         }
     }
 }

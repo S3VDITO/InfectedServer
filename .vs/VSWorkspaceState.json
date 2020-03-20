@@ -1,6 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\InfectedServer",
+    "\\InfectedServer\\KILLSTREAKS"
   ],
   "SelectedNode": "\\InfectedServer.sln",
   "PreviewInSolutionExplorer": false

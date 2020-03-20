@@ -9,30 +9,35 @@ namespace InfectedServer.KILLSTREAKS
 {
     public class Juggernaut : BaseScript
     {
+        public List<Entity> JuggernautList = new List<Entity>();
+
+        public Juggernaut()
+        {
+            OnNotify("set_juggernaut_armor", (player) => SetJuggArmor(player.As<Entity>()));
+            OnNotify("remove_juggernaut_armor", (player) => RemoveJuggernaut(player.As<Entity>()));
+        }
+
+        public void SetJuggArmor(Entity player)
+        {
+            player.SetField("juggernaut", new Parameter(player.CreateTemplateOverlay("goggles_overlay")));
+
+            if(player.HasField("combathigh_overlay"))
+                Notify("remove_vest_armor", player);
+
+            player.SetField("maxhealth", 200);
+            player.SetField("health", 1000);
+
+            Notify("anticamp_start", player);
+        }
+
         public override void OnPlayerDamage(Entity player, Entity inflictor, Entity attacker, int damage, int dFlags, string mod, string weapon, Vector3 point, Vector3 dir, string hitLoc)
         {
             try
             {
-                if (player.IsPlayer && attacker.IsPlayer && player.HasField("juggernaut_use") && !player.HasField("juggernaut_dead"))
+                if (player.IsPlayer && attacker.IsPlayer && JuggernautList.Contains(player))
                 {
-                    if (player.GetField<int>("juggernaut_armor") >= 0)
-                    {
-
-                        player.Health += damage;
-                        AfterDelay(100, () => player.Health = player.GetField<int>("MaxHealth"));
-
-                        if (attacker.GetField<string>("SessionTeam") == "axis")
-                            player.SetField("juggernaut_armor", player.GetField<int>("juggernaut_armor") - damage / 3);
-                        else
-                        {
-                            player.SetField("juggernaut_armor", attacker == player ?
-                                player.GetField<int>("juggernaut_armor") - damage / (weapon == "bomb_site_mp" ? 1 : 10) :
-                                player.GetField<int>("juggernaut_armor"));
-                        }
-
-                        if (attacker != player && attacker.GetField<string>("SessionTeam") == "axis")
-                            Notify("damage_feedback", attacker, "damage_feedback_juggernaut");
-                    }
+                    if (attacker != player && attacker.GetField<string>("SessionTeam") == "axis")
+                        Notify("damage_feedback", attacker, "damage_feedback_juggernaut");
                 }
             }
             catch (Exception ex)
@@ -45,13 +50,19 @@ namespace InfectedServer.KILLSTREAKS
 
         public override void OnPlayerKilled(Entity player, Entity inflictor, Entity attacker, int damage, string mod, string weapon, Vector3 dir, string hitLoc)
         {
-            if (player.IsPlayer && attacker.IsPlayer && player.HasField("juggernaut_use") && !player.HasField("juggernaut_dead"))
-            {
-                player.SetField("juggernaut_dead", true);
-                player.SetField("juggernaut_armor", -999);
-                player.GetField<HudElem>("juggernaut").Call("destroy");
-            }
+            if (JuggernautList.Contains(player))
+                RemoveJuggernaut(player);
+
             base.OnPlayerKilled(player, inflictor, attacker, damage, mod, weapon, dir, hitLoc);
+        }
+
+        public void RemoveJuggernaut(Entity player)
+        {
+            player.SetField("maxhealth", 100);
+            player.SetField("health", 100);
+
+            JuggernautList.Remove(player);
+            player.GetField<HudElem>("juggernaut").Call("destroy");
         }
     }
 }
