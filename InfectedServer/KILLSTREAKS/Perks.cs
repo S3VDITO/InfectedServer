@@ -14,7 +14,7 @@ namespace InfectedServer.KILLSTREAKS
         {
             "specialty_longersprint","specialty_fastreload","specialty_scavenger","specialty_blindeye","specialty_paint","specialty_hardline","specialty_coldblooded","specialty_quickdraw",
             "specialty_detectexplosive","specialty_autospot","specialty_bulletaccuracy","specialty_quieter","specialty_stalker","specialty_bulletpenetration","specialty_marksman",
-            "specialty_holdbreathwhileads","specialty_longerrange","specialty_fastermelee","specialty_reducedsway","specialty_lightweight", "specialty_sharp_focus", "specialty_explosivebullets"
+            "specialty_holdbreathwhileads","specialty_longerrange","specialty_fastermelee","specialty_reducedsway","specialty_lightweight", "specialty_sharp_focus" /* "specialty_explosivebullets" */
         };
 
         public static void AllPerksBonus(this Entity self) //Бонус спеца

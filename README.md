@@ -37,3 +37,7 @@ This script is made to make changes to the infection mode gameplay.
 * ModelClass.cs - Contains change model players functions
 * SoundClass.cs - Contains function for play sound
 * WeaponClass.cs - Contains weapons for humans
+
+## Change log
+* 19.03.2020 -> Update to ver 1.5
+* 20.03.2020 -> Added AC130 streak, fix osprey gunner, fix getting streaks, fix helicopter

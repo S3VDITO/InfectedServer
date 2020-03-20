@@ -18,13 +18,6 @@ namespace InfectedServer.KILLSTREAKS
             OnNotify("jugg", (owner, pos) => CallOsprey(owner.As<Entity>(), pos.As<Vector3>()));
         }
 
-        public override EventEat OnSay2(Entity player, string name, string message)
-        {
-                player.GiveWeapon(GetKillstreakWeapon(message));
-                player.SwitchToWeaponImmediate(GetKillstreakWeapon(message));
-            return base.OnSay2(player, name, message);
-        }
-
         #region COBRA
         public Entity COBRA_SETUP(Entity self, Vector3 startPos, Vector3 forward)
         {
@@ -37,22 +30,25 @@ namespace InfectedServer.KILLSTREAKS
 
         public void CallCobra(Entity self, Vector3 goalPos)
         {
-            Vector3 startPos = HELI_START_NODES[new Random().Next(0, HELI_START_NODES.Count)].Origin;
             float yaw = Function.Call<float>("RandomFloat", 360);
+            Vector3 startPos = GetPathStart(goalPos, yaw);
             Vector3 endPos = new Vector3(goalPos.X, goalPos.Y, AIR_HEIGHT);
 
             Entity cobra = COBRA_SETUP(self, GetPathStart(goalPos, yaw), new Vector3(0, yaw, 0));
             cobra.Call("SetVehGoalPos", endPos, true);
 
-            AfterDelay(7500, () =>
+            cobra.OnInterval(500, heli => 
             {
-                AfterDelay(500, () =>
+                if (cobra.Origin.DistanceTo2D(goalPos) <= 50)
                 {
-                    Notify("run_crate", self, cobra.Origin, new Vector3(0, 0, 1), "com_deploy_ballistic_vest_friend_world", "helicopter", false);
+                    Notify("run_crate", self, new Vector3(goalPos.X, goalPos.Y, cobra.Origin.Z), new Vector3(), "com_deploy_ballistic_vest_friend_world", "helicopter", false);
                     cobra.Call("SetSpeed", 130, 125);
-                    cobra.Call("SetVehGoalPos", HELI_START_NODES[new Random().Next(0, HELI_START_NODES.Count)].Origin, true);
+                    cobra.Call("SetVehGoalPos", GetPathEnd(goalPos, yaw + 60), true);
                     AfterDelay(7500, () => cobra.Call("Delete"));
-                });
+
+                    return false;
+                }
+                return true;
             });
         }
         #endregion
@@ -103,7 +99,7 @@ namespace InfectedServer.KILLSTREAKS
 
         public void CallHarrier(Entity self, Vector3 goalPos)
         {
-
+            self.TeamPlayerCardSplash("", "airdrop_assault");
             Single yaw = Function.Call<float>("RandomFloat", 360);
             Entity harrier = HARRIER_SETUP(self, GetPathStart(goalPos, yaw), new Vector3(0, yaw, 0));
             harrier.Call("SetVehGoalPos", new Vector3(goalPos.X, goalPos.Y, AIR_HEIGHT), true);
@@ -155,6 +151,7 @@ namespace InfectedServer.KILLSTREAKS
 
         public void CallOsprey(Entity self, Vector3 goalPos)
         {
+            self.TeamPlayerCardSplash("", "airdrop_juggernaut");
             int yaw = new Random().Next(0, 360);
             Vector3 startPos = HELI_START_NODES[new Random().Next(0, HELI_START_NODES.Count)].Origin;
             Entity osprey = Osprey(self, GetPathStart(goalPos, yaw), new Vector3(1, Function.Call<Vector3>("VectorToAngles", goalPos - GetPathStart(goalPos, yaw)).Y, 0));
@@ -194,7 +191,7 @@ namespace InfectedServer.KILLSTREAKS
                 {
                     if (player.GetField<string>("SessionTeam") == "axis" &&
                     LockSightTest(player, osprey) && 
-                    player.Origin.DistanceTo(pos) < 512)
+                    player.Origin.DistanceTo(pos) < 256)
                     {
                             osprey.Call("SetTurretTargetEnt", player);
                             osprey.Call("FireWeapon", "tag_flash", player);
@@ -203,6 +200,18 @@ namespace InfectedServer.KILLSTREAKS
 
                 return !osprey.HasField("bb_all");
             });
+        }
+
+        public override void OnPlayerDamage(Entity player, Entity inflictor, Entity attacker, int damage, int dFlags, string mod, string weapon, Vector3 point, Vector3 dir, string hitLoc)
+        {
+            if (weapon == "osprey_player_minigun_mp")
+                if (player.GetField<string>("SessionTeam") == "allies")
+                {
+                    damage = 0;
+                    player.Health += damage;
+                    AfterDelay(250, () => player.Health = 100);
+                }
+            base.OnPlayerDamage(player, inflictor, attacker, damage, dFlags, mod, weapon, point, dir, hitLoc);
         }
 
         public void AirShipPitchPropsUp(Entity osprey)
@@ -219,13 +228,17 @@ namespace InfectedServer.KILLSTREAKS
             AfterDelay(1000, () => Function.Call("PlayFXOnTag", Animation["blades_static_down"], osprey, "TAG_BLADES_ATTACH"));
         }
 
-        private static Dictionary<String, Int32> Animation = new Dictionary<String, Int32>()
+        private static Dictionary<string, int> Animation = new Dictionary<string, int>()
         {
             {"blades_anim_up", Function.Call<int>("LoadFX", "props/osprey_blades_anim_up")},
             {"blades_anim_down", Function.Call<int>("LoadFX","props/osprey_blades_anim_down")},
             {"blades_static_up", Function.Call<int>("LoadFX","props/osprey_blades_up")},
             {"blades_static_down", Function.Call<int>("LoadFX","props/osprey_blades_default")},
         };
+        #endregion
+
+        #region PaveLow
+        
         #endregion
 
         public Vector3 GetPathStart(Vector3 coord, float yaw )
@@ -237,6 +250,8 @@ namespace InfectedServer.KILLSTREAKS
 
             Vector3 startPoint = coord + (Function.Call<Vector3>("AnglesToForward", direction) * (-1 * lbHalfDistance));
             startPoint += new Vector3((Function.Call <float>("randomfloat", 2) - 1) * pathRandomness, (Function.Call<float>("randomfloat", 2) - 1) * pathRandomness, AIR_HEIGHT);
+
+            startPoint.Z = AIR_HEIGHT;
 
             return startPoint;
         }
@@ -250,6 +265,8 @@ namespace InfectedServer.KILLSTREAKS
 
             Vector3 endPoint = coord + (Function.Call<Vector3>("AnglesToForward", direction) * (lbHalfDistance));
             endPoint += new Vector3((Function.Call<float>("randomfloat", 2) - 1) * pathRandomness, (Function.Call<float>("randomfloat", 2) - 1) * pathRandomness, AIR_HEIGHT);
+
+            endPoint.Z = AIR_HEIGHT;
 
             return endPoint;
         }

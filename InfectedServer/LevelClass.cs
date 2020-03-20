@@ -32,24 +32,31 @@ namespace InfectedServer
             InitializateMapping();
             for (int id = 0; id < 2048; id++)
             {
-                Entity targetEnt = Entity.GetEntity(id);
+                if (Entity.GetEntity(id).GetField<string>("targetname") == "heli_start")
+                    HELI_START_NODES.Add(Entity.GetEntity(id));
 
-                if (targetEnt.GetField<string>("model") == "vehicle_ac130_coop")
-                    LEVEL_AC130 = targetEnt;
+                if (Entity.GetEntity(id).GetField<string>("targetname") == "heli_loop_start")
+                    HELI_LOOP_NODES.Add(Entity.GetEntity(id));
 
-                if (targetEnt.GetField<string>("targetname") == "heli_start")
-                    HELI_START_NODES.Add(targetEnt);
+                if (Entity.GetEntity(id).GetField<string>("targetname") == "minimap_corner")
+                    MinimapOrigins.Add(Entity.GetEntity(id));
 
-                if (targetEnt.GetField<string>("targetname") == "heli_loop_start")
-                    HELI_LOOP_NODES.Add(targetEnt);
+                if (Entity.GetEntity(id).GetField<string>("targetname") == "ac130rig_script_model")
+                    AC130_LEVEL = Entity.GetEntity(id);
+
+                if (Entity.GetEntity(id).GetField<string>("targetname") == "vehicle_ac130_coop")
+                    AC130_MODEL_LEVEL = Entity.GetEntity(id);
             }
 
-            LEVEL_AC130.Call("show");
+            AC130_MODEL_LEVEL.Call("SHOW");
         }
 
 
         public static class INFO
         {
+            public static Entity AC130_LEVEL;
+            public static Entity AC130_MODEL_LEVEL;
+
             public static int MOAB_INDEX = GetKillstreakIndex("nuke");
 
             public static List<Entity> VEHICLES = new List<Entity>();
@@ -74,7 +81,7 @@ namespace InfectedServer
                 return VEHICLES.Last().Origin.Z + 256;
             }
 
-            public static Entity LEVEL_AC130 = null;
+            public static List<Entity> MinimapOrigins = new List<Entity>();
 
             public static string GetHintText(string streakName)
             {
@@ -92,6 +99,15 @@ namespace InfectedServer
                         return "^1STREAK NOT FOUND!";
                 }
             }
+
+            public static Vector3 FindBoxCenter(Vector3 mins, Vector3 maxs)
+            {
+                Vector3 center = new Vector3(0, 0, 0);
+                center = maxs - mins;
+                center = new Vector3(center.X / 2, center.Y / 2, center.Z / 2) + mins;
+                return center;
+            }
+
 
             public static string GetCrateIcon(string streakName)
             {

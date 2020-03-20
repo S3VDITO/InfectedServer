@@ -51,6 +51,9 @@ namespace InfectedServer
             {
                 Vector3 newPos = player.Origin;
 
+                if (player.CurrentWeapon.Contains("ac130"))
+                    return true;
+
                 if (oldPos.DistanceTo(player.Origin) < 720)
                 {
                  player.Call("iPrintLnBold", "^1ANTICAMP^7: ^2RUN OR DIE!");

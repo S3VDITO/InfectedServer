@@ -8,7 +8,6 @@ namespace InfectedServer
 {
     public static class DebugClass
     {
-        public static bool DebugMode = false;
         public static void SendConsole(string message) => Log.Info(message);
     }
 }
