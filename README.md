@@ -9,6 +9,10 @@ This script is made to make changes to the infection mode gameplay.
 * Lunge Zones (On maps: Resistance, Terminal, Underground)
 * Anticamp system (If used MOAB or Juggernaut)
 
+## Bugs
+* Knife kills sometimes break a series of killers and cannot be used later (bomb killings too)
+* If you call more than 8 helicopter, the server will shut down (not a bug, just for now I'm too lazy to check for the number of helicopters in air)
+
 ## TODO
 * AC130
 * Remote turret on PaveLow
@@ -37,7 +41,3 @@ This script is made to make changes to the infection mode gameplay.
 * ModelClass.cs - Contains change model players functions
 * SoundClass.cs - Contains function for play sound
 * WeaponClass.cs - Contains weapons for humans
-
-## Change log
-* 19.03.2020 -> Update to ver 1.5
-* 20.03.2020 -> Added AC130 streak, fix osprey gunner, fix getting streaks, fix helicopter
