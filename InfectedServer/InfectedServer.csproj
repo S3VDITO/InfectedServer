@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="InfinityScript">
-      <HintPath>..\..\..\..\Desktop\InfinityScript.dll</HintPath>
+      <HintPath>..\..\InfinityScript.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -54,6 +54,7 @@
     <Compile Include="KILLSTREAKS\Juggernaut.cs" />
     <Compile Include="KILLSTREAKS\Laptop.cs" />
     <Compile Include="KILLSTREAKS\Perks.cs" />
+    <Compile Include="KILLSTREAKS\RemoteMissile.cs" />
     <Compile Include="KILLSTREAKS\SignalGrenade.cs" />
     <Compile Include="KILLSTREAKS\Vehicles.cs" />
     <Compile Include="KILLSTREAKS\VestArmor.cs" />

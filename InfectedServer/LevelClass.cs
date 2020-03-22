@@ -15,9 +15,9 @@ namespace InfectedServer
         /// </summary>
         public static void InitializateMapping()
         {
-            Function.AddMapping("SetHoverParams", 0x8225);
-            Function.AddMapping("SetTurningAbility", 0x8261);
-            Function.AddMapping("SetYawSpeed", 0x8261);
+            Function.AddMapping("SetHoverParams", 33317);
+            Function.AddMapping("SetTurningAbility", 33377);
+            Function.AddMapping("SetYawSpeed", 33377);
             Function.AddMapping("SetSpeed", 33363);
             Function.AddMapping("SetMaxPitchRoll", 33379);
             Function.AddMapping("SetVehGoalPos", 33325);
@@ -46,14 +46,20 @@ namespace InfectedServer
 
                 if (Entity.GetEntity(id).GetField<string>("targetname") == "vehicle_ac130_coop")
                     AC130_MODEL_LEVEL = Entity.GetEntity(id);
+
+                if (Entity.GetEntity(id).GetField<string>("targetname") == "uavrig_script_model")
+                    UAV = Entity.GetEntity(id);
             }
 
             AC130_MODEL_LEVEL.Call("SHOW");
+            
         }
 
 
         public static class INFO
         {
+            public static Entity UAV;
+
             public static Entity AC130_LEVEL;
             public static Entity AC130_MODEL_LEVEL;
 

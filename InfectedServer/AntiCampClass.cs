@@ -18,7 +18,7 @@ namespace InfectedServer
 
         public AntiCampClass()
         {
-            OnNotify("anticamp_start", (player) => StartAntiCamp(player.As<Entity>()));
+            OnNotify("anticamp_start", (player) => AfterDelay(250, () => StartAntiCamp(player.As<Entity>())));
         }
 
         private void StartAntiCamp(Entity player)
@@ -32,34 +32,36 @@ namespace InfectedServer
 
             player.Call("iPrintLnBold", "^1Ruuuuuuuuuuuuuun!");
             PlayLeaderDialog(player, "pushforward");
-
-            player.OnInterval(7500, p =>
+            AfterDelay(7500, () =>
             {
-                Vector3 newPos = player.Origin;
-
-                if (player.CurrentWeapon.Contains("ac130"))
-                    return true;
-
-                if (oldPos.DistanceTo(player.Origin) < 512)
+                player.OnInterval(7500, p =>
                 {
-                 player.Call("iPrintLnBold", "^1Run or die!");
+                    Vector3 newPos = player.Origin;
 
-                    PlayLeaderDialog(player, "pushforward");
+                    if (player.CurrentWeapon.Contains("ac130"))
+                        return true;
+
+                    if (oldPos.DistanceTo(player.Origin) < 384)
+                    {
+                        player.Call("iPrintLnBold", "^1Run or die!");
+
+                        PlayLeaderDialog(player, "pushforward");
 
 
-                    if(player.Health > 200)
-                        Function.Call("RadiusDamage", player.Origin, 10, 100, 100, player, "MOD_EXPLOSIVE", "bomb_site_mp");
+                        if (player.Health > 200)
+                            Function.Call("RadiusDamage", player.Origin, 10, 100, 100, player, "MOD_EXPLOSIVE", "bomb_site_mp");
 
-                    if (player.Health <= 100)
-                        Function.Call("RadiusDamage", player.Origin, 10, 20, 20, player, "MOD_EXPLOSIVE", "bomb_site_mp");
+                        if (player.Health <= 100)
+                            Function.Call("RadiusDamage", player.Origin, 10, 20, 20, player, "MOD_EXPLOSIVE", "bomb_site_mp");
 
+
+                        return player.IsAlive && player.GetField<string>("SessionTeam") == "allies";
+                    }
+
+                    AfterDelay(250, () => oldPos = player.Origin);
 
                     return player.IsAlive && player.GetField<string>("SessionTeam") == "allies";
-                }
-
-                AfterDelay(250, () => oldPos = player.Origin);
-
-                return player.IsAlive && player.GetField<string>("SessionTeam") == "allies";
+                });
             });
         }
 

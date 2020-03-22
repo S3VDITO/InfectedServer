@@ -11,7 +11,7 @@ namespace InfectedServer.KILLSTREAKS
 {
     public class VestArmor : BaseScript
     {
-        public static Dictionary<Entity, int> VestList = new Dictionary<Entity, int>();
+		public static List<Entity> VestList = new List<Entity>();
 
 		public VestArmor()
 		{
@@ -21,7 +21,7 @@ namespace InfectedServer.KILLSTREAKS
 
 		public void SetLightArmor(Entity player)
 		{
-			VestList.Add(player, 200);
+			VestList.Add(player);
 			GiveLightArmor(player);
 		}
 
@@ -29,7 +29,7 @@ namespace InfectedServer.KILLSTREAKS
 		{
 			player.Notify("give_light_armor");
 
-			int lightArmorHP = VestList[player];
+			int lightArmorHP = 200;
 
 			player.SetField("combathigh_overlay", new Parameter(player.CreateTemplateOverlay("combathigh_overlay")));
 
@@ -41,34 +41,30 @@ namespace InfectedServer.KILLSTREAKS
 		{
 			try
 			{
-				if (player.IsPlayer && attacker.IsPlayer && VestList.ContainsKey(player))
+				if (player.IsPlayer && attacker.IsPlayer && VestList.Contains(player))
 				{
-					if (attacker != player && attacker.GetField<string>("SessionTeam") == "axis")
+					if (attacker.GetField<string>("SessionTeam") == "axis")
 						Notify("damage_feedback", attacker, "damage_feedback_lightarmor");
 				}
 			}
 			catch (Exception ex)
 			{
-				SendConsole("[FUCKED EXCEPTION] [VestClass] Info: " + ex.ToString());
+				//SendConsole("[FUCKED EXCEPTION] [VestClass] Info: " + ex.ToString());
 			}
-
-			base.OnPlayerDamage(player, inflictor, attacker, damage, dFlags, mod, weapon, point, dir, hitLoc);
 		}
 
 		public override void OnPlayerKilled(Entity player, Entity inflictor, Entity attacker, int damage, string mod, string weapon, Vector3 dir, string hitLoc)
 		{
-			if (VestList.ContainsKey(player))
+			if (VestList.Contains(player))
 				RemoveLightArmor(player);
-
-			base.OnPlayerKilled(player, inflictor, attacker, damage, mod, weapon, dir, hitLoc);
 		}
 
 		public void RemoveLightArmor(Entity player)
 		{
 			VestList.Remove(player);
 			player.GetField<HudElem>("combathigh_overlay").Call("destroy");
+
 			player.SetField("maxhealth", 100);
-			player.Notify("remove_light_armor");
 		}
 	}
 }

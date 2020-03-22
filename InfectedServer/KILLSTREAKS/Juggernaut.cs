@@ -24,8 +24,19 @@ namespace InfectedServer.KILLSTREAKS
             if(player.HasField("combathigh_overlay"))
                 Notify("remove_vest_armor", player);
 
-            player.SetField("maxhealth", 200);
-            player.SetField("health", 1000);
+            player.SetField("maxhealth", 500);
+            player.SetField("health", 2000);
+
+            player.SetField("maxhealth", 500);
+            player.SetField("health", 2000);
+
+            AfterDelay(2500, () =>
+            {
+                player.SetField("maxhealth", 500);
+                player.SetField("health", 2000);
+            });
+
+            JuggernautList.Add(player);
 
             Notify("anticamp_start", player);
         }
@@ -34,18 +45,19 @@ namespace InfectedServer.KILLSTREAKS
         {
             try
             {
-                if (player.IsPlayer && attacker.IsPlayer && JuggernautList.Contains(player))
+                if (player.IsPlayer && attacker.IsPlayer  && JuggernautList.Contains(player))
                 {
-                    if (attacker != player && attacker.GetField<string>("SessionTeam") == "axis")
+                    if (attacker.GetField<string>("SessionTeam") == "axis")
                         Notify("damage_feedback", attacker, "damage_feedback_juggernaut");
+
+                    
                 }
             }
             catch (Exception ex)
             {
-                SendConsole("[FUCKED EXCEPTION] [JuggClass] Info: " + ex.ToString());
+                //SendConsole("[FUCKED EXCEPTION] [JuggClass] Info: " + ex.ToString());
             }
 
-            base.OnPlayerDamage(player, inflictor, attacker, damage, dFlags, mod, weapon, point, dir, hitLoc);
         }
 
         public override void OnPlayerKilled(Entity player, Entity inflictor, Entity attacker, int damage, string mod, string weapon, Vector3 dir, string hitLoc)

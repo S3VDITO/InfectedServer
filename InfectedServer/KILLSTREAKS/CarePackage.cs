@@ -58,6 +58,9 @@ namespace InfectedServer.KILLSTREAKS
             Vector3 nowPos = new Vector3();
             OnInterval(500, () =>
             {
+                if (!drop_crate.GetField<Entity>("owner").IsPlayer)
+                    return false;
+
                 if (oldPos.DistanceTo(nowPos) < 5)
                 {
                     InitCrate(drop_crate);
@@ -176,13 +179,10 @@ namespace InfectedServer.KILLSTREAKS
 
         public void BallisticVest(Entity self)
         {
-            self.Health = 100;
-
-            //self.SetModelBlastshield();
+            Notify("set_vest_armor", self);
 
             AfterDelay(750, () =>
-            {
-                Notify("set_vest_armor", self);
+            { 
 
                 self.Call("SetViewModel", "viewhands_juggernaut_ally");
 
@@ -317,19 +317,19 @@ namespace InfectedServer.KILLSTREAKS
 
         public void Juggernaut(Entity self)
         {
+            Notify("set_juggernaut_armor", self);
+
             AfterDelay(150, () =>
             {
                 self.Call("DetachAll");
                 self.Call("ShowAllParts");
-
-                Notify("set_juggernaut_armor", self);
 
                 self.Call("SetViewModel", "viewhands_juggernaut_opforce");
                 self.Call("SetModel", "mp_fullbody_opforce_juggernaut");
 
                 self.TakeAllWeapons();
 
-                string PrimaryWeapon = "iw5_m60jugg_mp_thermal_heartbeat_silencer_xmags_camo07";
+                string PrimaryWeapon = LMG[new Random().Next(0, LMG.Count)];
                 string SecondaryWeapon = "iw5_fmg9_mp_akimbo_xmags_silencer";
 
                 string PrimaryOffhand = "";

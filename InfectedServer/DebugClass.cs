@@ -23,13 +23,6 @@ namespace InfectedServer
         {
             SendConsole("[InfectedServer] Info: Debug mode is enabled!");
         }
-
-        public override EventEat OnSay2(Entity player, string name, string message)
-        {
-            player.GiveWeapon(GetKillstreakWeapon(message));
-            player.SwitchToWeaponImmediate(GetKillstreakWeapon(message));
-            return base.OnSay2(player, name, message);
-        }
     }
     #endif
 }

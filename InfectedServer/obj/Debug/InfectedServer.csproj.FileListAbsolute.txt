@@ -5,6 +5,6 @@ C:\Users\S3VDIT0\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedSe
 C:\Users\S3VDIT0\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedServer.auto.dll
 C:\Users\S3VDIT0\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedServer.auto.pdb
 C:\Users\S3VDIT0\Desktop\InfectedServer\InfectedServer\obj\Debug\InfectedServer.csprojAssemblyReference.cache
-C:\Users\S3VDIT0\Desktop\InfectedServer\InfectedServer\obj\Debug\InfectedServer.csproj.CopyComplete
 C:\Users\S3VDIT0\Desktop\InfectedServer\InfectedServer\obj\Debug\InfectedServer.auto.dll
 C:\Users\S3VDIT0\Desktop\InfectedServer\InfectedServer\obj\Debug\InfectedServer.auto.pdb
+C:\Users\S3VDIT0\Desktop\InfectedServer\InfectedServer\obj\Debug\InfectedServer.csproj.CopyComplete

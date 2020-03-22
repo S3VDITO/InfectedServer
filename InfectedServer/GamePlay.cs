@@ -17,15 +17,13 @@ namespace InfectedServer
 {
     public class GamePlay : BaseScript
     {
-        public static Dictionary<string, int> STREAK = new Dictionary<string, int>()
+        public static readonly Dictionary<string, int> STREAK = new Dictionary<string, int>()
         {
             ["helicopter"] = 1,
             ["airdrop_assault"] = 5,
             ["deployable_vest"] = 9,
             ["airdrop_juggernaut"] = 18,
-            ["ac130"] = 25,
-            ["littlebird_flock"] = 35,
-            ["helicopter_flares"] = 45
+            ["ac130"] = 30,
         };
 
         public static List<Entity> Allies = new List<Entity>();
@@ -75,7 +73,6 @@ namespace InfectedServer
             player.SetField("lastDroppableWeapon", string.Empty);
 
 
-
             player.OnNotify("weapon_change", (_p, _weapon) =>
             {
                 String weaponName = _weapon.As<String>();
@@ -104,6 +101,16 @@ namespace InfectedServer
                         player.Call("SetPlayerData", "killstreaksState", "hasStreak", 0, false);
                         player.Call("SetPlayerData", "killstreaksState", "icons", 0, GetKillstreakIndex("ac130"));
                         player.TakeWeapon(GetKillstreakWeapon("ac130"));
+                    });//predator_missile
+                }
+
+                if (weaponName == GetKillstreakWeapon("predator_missile"))
+                {
+                    AfterDelay(500, () =>
+                    {
+                        Notify("remote_mortar", player);
+                        player.Call("SetPlayerData", "killstreaksState", "hasStreak", 0, false);
+                        player.Call("SetPlayerData", "killstreaksState", "icons", 0, GetKillstreakIndex("predator_missile"));
                     });
                 }
             });
@@ -115,11 +122,11 @@ namespace InfectedServer
                 player.CreateStreakHUD();
 
                 if (player.GetField<string>("SessionTeam") == "allies")
-                    HumanStartPack(player, BuildWeapon(WeaponClass.Type.ShotGuns, 4), "iw5_usp45_mp_tactical");
+                    HumanStartPack(player, BuildWeapon(WeaponClass.Type.ShotGuns, 4), "iw5_fnfiveseven_mp_xmags_tactical");
 
                 if (player.GetField<string>("SessionTeam") == "axis")
                 {
-                    player.Call("setMoveSpeedScale", 1.5f);
+                    player.Call("setMoveSpeedScale", 1.25f);
                     player.Call("SetPlayerData", "killstreaksState", "isSpecialist", true);
                     player.SetClientDvar("bg_viewBobAmplitudeSprinting", "0 0");
                 }
@@ -137,26 +144,26 @@ namespace InfectedServer
         private void OnPlayerSpawned(Entity player)
         {
             if (player.GetField<string>("SessionTeam") == "allies")
-                HumanStartPack(player, BuildWeapon(WeaponClass.Type.ShotGuns, 4), "iw5_usp45_mp_tactical");
+                HumanStartPack(player, BuildWeapon(WeaponClass.Type.ShotGuns, 4), "iw5_fnfiveseven_mp_xmags_tactical");
 
             if (player.GetField<string>("SessionTeam") == "axis")
             {
-                player.Call("setMoveSpeedScale", 1.25f);
-                player.Call("SetPlayerData", "killstreaksState", "isSpecialist", true);
+                if (player.CurrentWeapon.Contains("iw5_deserteagle"))
+                {
+                    player.Call("setWeaponAmmoClip", player.CurrentWeapon, 0);
+                    player.Call("setWeaponAmmoStock", player.CurrentWeapon, 0);
+                    AfterDelay(500, () =>
+                    {
+                        player.Call("setWeaponAmmoClip", player.CurrentWeapon, 0);
+                        player.Call("setWeaponAmmoStock", player.CurrentWeapon, 0);
+                    });
+                }
+
                 player.SetClientDvar("bg_viewBobAmplitudeSprinting", "0 0");
 
-                player.SetField("maxHealth", 75);
-                player.Health = 75;
-
-                if (player.HasField("assassin"))
-                    GiveKillstreaksInfected(player, "specialty_coldblooded_ks");
+                player.SetField("maxHealth", 65);
+                player.Health = 65;
             }
-        }
-
-        public override EventEat OnSay2(Entity player, string name, string message)
-        {
-            GiveKillstreaksInfected(player, "specialty_coldblooded_ks");
-            return base.OnSay2(player, name, message);
         }
 
         public void START_GAME()
@@ -168,6 +175,7 @@ namespace InfectedServer
             {
                 //Function.Call("SetTeamRadar", "axis", true);
                 InitializateLevel();
+                Notify("spawn_uav");
             });
         }
 
@@ -270,38 +278,35 @@ namespace InfectedServer
 
         public void Updater(Entity attacker)
         {
-            AfterDelay(200, () =>
+            if (STREAK["helicopter"] == attacker.GetField<int>("Kills"))
             {
-                if (STREAK["helicopter"] == attacker.GetField<int>("Kills"))
-                {
-                    PlayLeaderDialog(attacker, "kill_confirmed");
-                    AfterDelay(1800, () => GiveKillstreak(attacker, "helicopter"));
-                }
-                else if (STREAK["airdrop_assault"] == attacker.GetField<int>("Kills"))
-                {
-                    GiveKillstreak(attacker, "airdrop_assault");
-                    attacker.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["deployable_vest"]);
-                    attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 2);
-                }
-                else if (STREAK["deployable_vest"] == attacker.GetField<int>("Kills"))
-                {
-                    GiveKillstreak(attacker, "deployable_vest");
-                    attacker.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["airdrop_juggernaut"]);
-                    attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 3);
-                }
-                else if (STREAK["airdrop_juggernaut"] == attacker.GetField<int>("Kills"))
-                {
-                    GiveKillstreak(attacker, "airdrop_juggernaut");
-                    attacker.Call("SetPlayerData", "killstreaksState", "countToNext", 0);
-                    attacker.Call("SetPlayerData", "killstreaksState", "numAvailable", 0);
-                    attacker.Call("SetPlayerData", "killstreaksState", "selectedIndex", -1);
-                    attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 1);
-                }
-                else if (STREAK["ac130"] == attacker.GetField<int>("Kills"))
-                {
-                    GiveKillstreak(attacker, "ac130");
-                }
-            });
+                PlayLeaderDialog(attacker, "kill_confirmed");
+                AfterDelay(1800, () => GiveKillstreak(attacker, "helicopter"));
+            }
+            else if (STREAK["airdrop_assault"] == attacker.GetField<int>("Kills"))
+            {
+                GiveKillstreak(attacker, "airdrop_assault");
+                attacker.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["deployable_vest"]);
+                attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 2);
+            }
+            else if (STREAK["deployable_vest"] == attacker.GetField<int>("Kills"))
+            {
+                GiveKillstreak(attacker, "deployable_vest");
+                attacker.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["airdrop_juggernaut"]);
+                attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 3);
+            }
+            else if (STREAK["airdrop_juggernaut"] == attacker.GetField<int>("Kills"))
+            {
+                GiveKillstreak(attacker, "airdrop_juggernaut");
+                attacker.Call("SetPlayerData", "killstreaksState", "countToNext", 0);
+                attacker.Call("SetPlayerData", "killstreaksState", "numAvailable", 0);
+                attacker.Call("SetPlayerData", "killstreaksState", "selectedIndex", -1);
+                attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 1);
+            }
+            else if (STREAK["ac130"] == attacker.GetField<int>("Kills"))
+            {
+                GiveKillstreak(attacker, "ac130");
+            }
         }
         public override void OnPlayerKilled(Entity player, Entity inflictor, Entity attacker, int damage, string mod, string weapon, Vector3 dir, string hitLoc)
         {
@@ -313,75 +318,8 @@ namespace InfectedServer
                 if (attacker.Call<int>("GetPlayerData", "killstreaksState", "icons", 0) == MOAB_INDEX &&
                     attacker.Call<int>("GetPlayerData", "killstreaksState", "hasStreak", 0) == 1)
                     Notify("anticamp_start", attacker);
-
-                AfterDelay(200, () =>
-                {
-                    if (STREAK["helicopter"] == attacker.GetField<int>("Kills"))
-                    {
-                        PlayLeaderDialog(attacker, "kill_confirmed");
-                        AfterDelay(1800, () => GiveKillstreak(attacker, "helicopter"));
-                    }
-                    else if (STREAK["airdrop_assault"] == attacker.GetField<int>("Kills"))
-                    {
-                        GiveKillstreak(attacker, "airdrop_assault");
-                        attacker.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["deployable_vest"]);
-                        attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 2);
-                    }
-                    else if (STREAK["deployable_vest"] == attacker.GetField<int>("Kills"))
-                    {
-                        GiveKillstreak(attacker, "deployable_vest");
-                        attacker.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["airdrop_juggernaut"]);
-                        attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 3);
-                    }
-                    else if (STREAK["airdrop_juggernaut"] == attacker.GetField<int>("Kills"))
-                    {
-                        GiveKillstreak(attacker, "airdrop_juggernaut");
-                        attacker.Call("SetPlayerData", "killstreaksState", "countToNext", 0);
-                        attacker.Call("SetPlayerData", "killstreaksState", "numAvailable", 0);
-                        attacker.Call("SetPlayerData", "killstreaksState", "selectedIndex", -1);
-                        attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 1);
-                    }
-                    else if (STREAK["ac130"] == attacker.GetField<int>("Kills"))
-                    {
-                        GiveKillstreak(attacker, "airdrop_juggernaut");
-                        attacker.Call("SetPlayerData", "killstreaksState", "countToNext", 0);
-                        attacker.Call("SetPlayerData", "killstreaksState", "numAvailable", 0);
-                        attacker.Call("SetPlayerData", "killstreaksState", "selectedIndex", -1);
-                        attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 1);
-                    }
-                    else
-                        PlayLeaderDialog(attacker, "kill_confirmed");
-                });
-            }
-
-            if (attacker.IsPlayer && player.IsPlayer && player != attacker && attacker.GetField<string>("SessionTeam") == "axis")
-            {
-                attacker.SetField("assassin", true);
-
-                GiveKillstreaksInfected(player, "specialty_coldblooded_ks");
             }
             base.OnPlayerKilled(player, inflictor, attacker, damage, mod, weapon, dir, hitLoc);
-        }
-
-        public void GiveKillstreaksInfected(Entity player, string streakName)
-        {
-            switch (streakName)
-            {
-                case "specialty_coldblooded_ks":
-
-                    player.SetField("maxHealth", 125);
-                    player.Health = 125;
-
-                    player.Call("SetPlayerData", "killstreaksState", "hasStreak", 1, true);
-                    player.Call("SetPlayerData", "killstreaksState", "icons", 1, GetKillstreakIndex("specialty_coldblooded_ks"));
-
-                    player.Call("setMoveSpeedScale", 1.5f);
-
-                    Notify("ShowStreakHUD", player, "Assassin", GetKillstreakDpadIcon("specialty_coldblooded_ks"), "First kill for Infected!", "achieve_assassin", GetKillstreakSound("specialty_coldblooded_ks"));
-
-                    player.Call("ThermalVisionOn");
-                    break;
-            }
         }
 
         private void GiveKillstreak(Entity self, string streak)
@@ -441,12 +379,25 @@ namespace InfectedServer
                     self.GiveWeapon(GetKillstreakWeapon("ac130"));
 
                     self.Call("SetPlayerData", "killstreaksState", "hasStreak", 0, true);
-                    self.Call("SetPlayerData", "killstreaksState", "icons", 0, GetKillstreakIndex("airdrop_juggernaut"));
+                    self.Call("SetPlayerData", "killstreaksState", "icons", 0, GetKillstreakIndex("ac130"));
 
                     Notify("ShowStreakHUD", self, "AC130",
-                        GetKillstreakDpadIcon("AC130"),
+                        GetKillstreakDpadIcon("ac130"),
                         self.GetField<int>("Kills") + " Point Streak!",
                         GetKillstreakEarnSound("ac130"), GetKillstreakSound("ac130"));
+                    break;
+
+                case "predator_missile":
+                    self.Call("SetActionSlot", 4, "weapon", GetKillstreakWeapon("predator_missile"));
+                    self.GiveWeapon(GetKillstreakWeapon("predator_missile"));
+
+                    self.Call("SetPlayerData", "killstreaksState", "hasStreak", 0, true);
+                    self.Call("SetPlayerData", "killstreaksState", "icons", 0, GetKillstreakIndex("predator_missile"));
+
+                    Notify("ShowStreakHUD", self, "Predator missile",
+                        GetKillstreakDpadIcon("predator_missile"),
+                        self.GetField<int>("Kills") + " Point Streak!",
+                        GetKillstreakEarnSound("predator_missile"), GetKillstreakSound("predator_missile"));
                     break;
             }
         }
