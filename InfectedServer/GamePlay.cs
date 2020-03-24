@@ -26,9 +26,6 @@ namespace InfectedServer
             ["ac130"] = 30,
         };
 
-        public static List<Entity> Allies = new List<Entity>();
-        public static List<Entity> Axis = new List<Entity>();
-
         public GamePlay()
         {
             new InitializateClass();
@@ -278,35 +275,38 @@ namespace InfectedServer
 
         public void Updater(Entity attacker)
         {
-            if (STREAK["helicopter"] == attacker.GetField<int>("Kills"))
+            AfterDelay(250, () =>
             {
-                PlayLeaderDialog(attacker, "kill_confirmed");
-                AfterDelay(1800, () => GiveKillstreak(attacker, "helicopter"));
-            }
-            else if (STREAK["airdrop_assault"] == attacker.GetField<int>("Kills"))
-            {
-                GiveKillstreak(attacker, "airdrop_assault");
-                attacker.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["deployable_vest"]);
-                attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 2);
-            }
-            else if (STREAK["deployable_vest"] == attacker.GetField<int>("Kills"))
-            {
-                GiveKillstreak(attacker, "deployable_vest");
-                attacker.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["airdrop_juggernaut"]);
-                attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 3);
-            }
-            else if (STREAK["airdrop_juggernaut"] == attacker.GetField<int>("Kills"))
-            {
-                GiveKillstreak(attacker, "airdrop_juggernaut");
-                attacker.Call("SetPlayerData", "killstreaksState", "countToNext", 0);
-                attacker.Call("SetPlayerData", "killstreaksState", "numAvailable", 0);
-                attacker.Call("SetPlayerData", "killstreaksState", "selectedIndex", -1);
-                attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 1);
-            }
-            else if (STREAK["ac130"] == attacker.GetField<int>("Kills"))
-            {
-                GiveKillstreak(attacker, "ac130");
-            }
+                if (STREAK["helicopter"] == attacker.GetField<int>("Kills"))
+                {
+                    PlayLeaderDialog(attacker, "kill_confirmed");
+                    AfterDelay(1800, () => GiveKillstreak(attacker, "helicopter"));
+                }
+                else if (STREAK["airdrop_assault"] == attacker.GetField<int>("Kills"))
+                {
+                    GiveKillstreak(attacker, "airdrop_assault");
+                    attacker.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["deployable_vest"]);
+                    attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 2);
+                }
+                else if (STREAK["deployable_vest"] == attacker.GetField<int>("Kills"))
+                {
+                    GiveKillstreak(attacker, "deployable_vest");
+                    attacker.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["airdrop_juggernaut"]);
+                    attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 3);
+                }
+                else if (STREAK["airdrop_juggernaut"] == attacker.GetField<int>("Kills"))
+                {
+                    GiveKillstreak(attacker, "airdrop_juggernaut");
+                    attacker.Call("SetPlayerData", "killstreaksState", "countToNext", 0);
+                    attacker.Call("SetPlayerData", "killstreaksState", "numAvailable", 0);
+                    attacker.Call("SetPlayerData", "killstreaksState", "selectedIndex", -1);
+                    attacker.Call("SetPlayerData", "killstreaksState", "nextIndex", 1);
+                }
+                else if (STREAK["ac130"] == attacker.GetField<int>("Kills"))
+                {
+                    GiveKillstreak(attacker, "ac130");
+                }
+            });
         }
         public override void OnPlayerKilled(Entity player, Entity inflictor, Entity attacker, int damage, string mod, string weapon, Vector3 dir, string hitLoc)
         {

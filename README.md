@@ -3,13 +3,16 @@
 
 This script is made to make changes to the infection mode gameplay.
 
+# Demo gameplay
+Click for watch
+[![Alt text](https://img.youtube.com/vi/y-nrE2aP9yE/0.jpg)](https://www.youtube.com/watch?v=y-nrE2aP9yE)
+
 ## What is implemented
 * Kill streaks system for humans
 * Osprey [NOT USES]
 * Lunge Zones (On maps: Resistance, Terminal, Underground) [NOT USES (MapClass.cs)]
 * Anticamp system (If used MOAB or Juggernaut)
 * AC130
-* Kill streaks system for infected
 * Light armor vest
 * Advanced predator missile (missile launched from UAV) [NOT UESE]
 
@@ -31,4 +34,5 @@ Special thanks to:
 * 19.03.2020 -> Upload ver 1.5
 * 20.03.2020 -> Added AC130, fix killstreaks, fix helicopter, fix osprey gunner
 * 20.03.2020 -> Comment MapEdit, osprey remove, added Infected Killstreaks, fix jugg armor, fix anticamp, add vest armor
-* 23.03.2020 -> May be last comits, remove Infected Killstreaks, added Advanced Predator missile [NOT USES],
+* 23.03.2020 -> May be last comits, remove Infected Killstreaks, added Advanced Predator missile [NOT USES]
+* 24.03.2020 -> Fix getting killstreaks
