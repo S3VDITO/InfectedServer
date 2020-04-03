@@ -17,6 +17,11 @@ namespace InfectedServer.KILLSTREAKS
             "specialty_holdbreathwhileads","specialty_longerrange","specialty_fastermelee","specialty_reducedsway","specialty_lightweight", "specialty_sharp_focus" /* "specialty_explosivebullets" */
         };
 
+        public static void ExplosiveBullets(this Entity self)
+        {
+            self.SetPerk("specialty_explosivebullets", true, true);
+        }
+
         public static void AllPerksBonus(this Entity self) //Бонус спеца
         {
             foreach (string perk in _Perks)

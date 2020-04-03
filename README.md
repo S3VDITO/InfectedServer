@@ -8,6 +8,8 @@ Click for watch
 [![Alt text](https://img.youtube.com/vi/y-nrE2aP9yE/0.jpg)](https://www.youtube.com/watch?v=y-nrE2aP9yE)
 
 ## What is implemented
+* PaveLow [NOT USES]
+* Stinger logic
 * Kill streaks system for humans
 * Osprey [NOT USES]
 * Lunge Zones (On maps: Resistance, Terminal, Underground) [NOT USES (MapClass.cs)]
@@ -36,3 +38,4 @@ Special thanks to:
 * 20.03.2020 -> Comment MapEdit, osprey remove, added Infected Killstreaks, fix jugg armor, fix anticamp, add vest armor
 * 23.03.2020 -> May be last comits, remove Infected Killstreaks, added Advanced Predator missile [NOT USES]
 * 24.03.2020 -> Fix getting killstreaks
+* 03.04.2020 -> Added avanced CarePackege trigger logic, added stringer logic, added PaveLow [NOT USES], fixed UnLink predator missile

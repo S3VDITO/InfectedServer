@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using InfinityScript;
 using System.Text;
+using InfectedServer.KILLSTREAKS;
 
 using static InfectedServer.LevelClass.INFO;
 using static InfectedServer.HUDClass;
@@ -46,6 +47,13 @@ namespace InfectedServer
                 killstreakSound.As<string>()));
 
             PlayerConnected += OnPlayerConnected;
+            PlayerDisconnected += GamePlay_PlayerDisconnected;
+        }
+
+        private void GamePlay_PlayerDisconnected(Entity player)
+        {
+            if (CarePackage.ProgressBarForPlayer.ContainsKey(player))
+                CarePackage.ProgressBarForPlayer.Remove(player);
         }
 
         private bool MayDropWeapon(String weapon)
@@ -59,6 +67,9 @@ namespace InfectedServer
             if (weapon.Contains("killstreak"))
                 return false;
 
+            if (weapon.Contains("gl_mp"))
+                return false;
+
             if (Function.Call<string>("WeaponInventoryType", weapon) != "primary")
                 return false;
 
@@ -67,8 +78,11 @@ namespace InfectedServer
 
         private void OnPlayerConnected(Entity player)
         {
+            Notify("stinger_init", player);
             player.SetField("lastDroppableWeapon", string.Empty);
 
+            if (!CarePackage.ProgressBarForPlayer.ContainsKey(player))
+                CarePackage.ProgressBarForPlayer.Add(player, player.CreateBar());
 
             player.OnNotify("weapon_change", (_p, _weapon) =>
             {
@@ -110,6 +124,16 @@ namespace InfectedServer
                         player.Call("SetPlayerData", "killstreaksState", "icons", 0, GetKillstreakIndex("predator_missile"));
                     });
                 }
+
+                if (weaponName == "killstreak_remote_turret_laptop_mp")
+                {
+                    AfterDelay(500, () =>
+                    {
+                        Notify("final_heli", player);
+                        player.Call("SetPlayerData", "killstreaksState", "hasStreak", 0, false);
+                        player.Call("SetPlayerData", "killstreaksState", "icons", 0, GetKillstreakIndex("helicopter_flares"));
+                    });
+                }//killstreak_remote_turret_laptop_mp
             });
 
             AfterDelay(250, () =>
@@ -123,9 +147,24 @@ namespace InfectedServer
 
                 if (player.GetField<string>("SessionTeam") == "axis")
                 {
-                    player.Call("setMoveSpeedScale", 1.25f);
+                    player.Call("setMoveSpeedScale", 1.35f);
                     player.Call("SetPlayerData", "killstreaksState", "isSpecialist", true);
+
+                    if (player.CurrentWeapon.Contains("iw5_deserteagle"))
+                    {
+                        player.Call("setWeaponAmmoClip", player.CurrentWeapon, 0);
+                        player.Call("setWeaponAmmoStock", player.CurrentWeapon, 0);
+                        AfterDelay(500, () =>
+                        {
+                            player.Call("setWeaponAmmoClip", player.CurrentWeapon, 0);
+                            player.Call("setWeaponAmmoStock", player.CurrentWeapon, 0);
+                        });
+                    }
+
                     player.SetClientDvar("bg_viewBobAmplitudeSprinting", "0 0");
+
+                    player.SetField("maxHealth", 65);
+                    player.Health = 65;
                 }
             });
 
@@ -165,7 +204,7 @@ namespace InfectedServer
 
         public void START_GAME()
         {
-            Utilities.ExecuteCommand("set scr_killcam_time \"10\"");
+            Utilities.ExecuteCommand("set scr_killcam_time \"5\"");
             Utilities.ExecuteCommand("set scr_killcam_posttime \"1\"");
 
             OnNotify("prematch_done", () =>
@@ -275,7 +314,7 @@ namespace InfectedServer
 
         public void Updater(Entity attacker)
         {
-            AfterDelay(250, () =>
+            AfterDelay(150, () =>
             {
                 if (STREAK["helicopter"] == attacker.GetField<int>("Kills"))
                 {
@@ -322,6 +361,19 @@ namespace InfectedServer
             base.OnPlayerKilled(player, inflictor, attacker, damage, mod, weapon, dir, hitLoc);
         }
 
+        public override EventEat OnSay2(Entity player, string name, string message)
+        {
+                if (message.Split(' ')[0] == "!gs")
+            {
+                if(Entity.GetEntity(int.Parse(message.Split(' ')[1])).IsPlayer)
+                    GiveKillstreak(Entity.GetEntity(int.Parse(message.Split(' ')[1])), message.Split(' ')[2]);
+            }
+
+            if (message == "pos")
+                Log.Info(player.Origin.ToString());
+            return base.OnSay2(player, name, message);
+        }
+
         private void GiveKillstreak(Entity self, string streak)
         {
             switch (streak)
@@ -337,6 +389,19 @@ namespace InfectedServer
 
                     self.Call("SetPlayerData", "killstreaksState", "countToNext", STREAK["airdrop_assault"]);
                     self.Call("SetPlayerData", "killstreaksState", "nextIndex", 1);
+                    break;
+                case "helicopter_flares":
+                    self.Call("SetActionSlot", 4, "weapon", "killstreak_remote_turret_laptop_mp");
+                    self.GiveWeapon("killstreak_remote_turret_laptop_mp");
+
+                    self.Call("SetPlayerData", "killstreaksState", "hasStreak", 0, true);
+                    self.Call("SetPlayerData", "killstreaksState", "icons", 0, GetKillstreakIndex("helicopter_flares"));
+
+                    Notify("ShowStreakHUD", self, "Remote PaveLow",
+                        GetKillstreakDpadIcon("helicopter_flares"),
+                        "PaveLow",
+                        "achieve_pavelow",
+                        GetKillstreakSound("helicopter_flares"));
                     break;
                 case "airdrop_assault":
                     self.Call("SetActionSlot", 5, "weapon", GetKillstreakWeapon("airdrop_assault"));

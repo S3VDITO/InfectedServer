@@ -27,22 +27,166 @@ namespace InfectedServer.KILLSTREAKS
                     streakName.As<string>(),
                     solid.As<bool>()));
 
-            OnNotify("run_init_crate", (crate) => InitCrate(crate.As<Entity>()));
+            OnNotify("run_init_crate", (crate) => 
+            {
+                if (!Crates.ContainsKey(crate.As<Entity>()))
+                    Crates.Add(crate.As<Entity>(), new Dictionary<string, object>()
+                    {
+                        ["streakName"] = crate.As<Entity>().GetField<string>("streakName"),
+                        ["owner"] = crate.As<Entity>().GetField<Entity>("owner"),
+                        ["team"] = crate.As<Entity>().GetField<Entity>("owner").GetField<string>("SessionTeam"),
+                        ["isUse"] = 0,
+                        ["useRate"] = 0
+                    });
+
+                InitCrate(crate.As<Entity>()); 
+            });
+
+            UsableLogic();
         }
+
+        Dictionary<Entity, Dictionary<string, object>> Crates = new Dictionary<Entity, Dictionary<string, object>>();
+        public static Dictionary<Entity, Dictionary<string, HudElem>> ProgressBarForPlayer = new Dictionary<Entity, Dictionary<string, HudElem>>();
 
         public Entity SpawnCarePackege(Entity owner, Vector3 sourcePos, string streakName, string model, bool solid = true)
         {
             Entity dropCrate = Function.Call<Entity>("Spawn", "script_model", sourcePos);
             dropCrate.SetField("TargetName", "care_package");
-            dropCrate.SetField("streakName", streakName);
-            dropCrate.SetField("owner", owner);
-
             dropCrate.Call("SetModel", model);
+
+            if(!Crates.ContainsKey(dropCrate))
+                Crates.Add(dropCrate, new Dictionary<string, object>() 
+                {
+                    ["streakName"] = streakName,
+                    ["owner"] = owner,
+                    ["team"] = owner.GetField<string>("SessionTeam"),
+                    ["isUse"] = 0,
+                    ["useRate"] = 0
+                });
 
             if (solid)
                 dropCrate.Call("CloneBrushModelToScriptModel", _airdropCollision);
 
             return dropCrate;
+        }
+
+        public void UsableLogic()
+        {
+            OnInterval(100, () =>
+            {
+                try
+                {
+                    foreach (Entity player in Players)
+                    {
+                        if (!player.IsPlayer)
+                            continue;
+
+                        if (SortByDistance(Crates.Keys.ToList(), player.Origin).Count > 0)
+                            player.SetField("best_dist_package", SortByDistance(Crates.Keys.ToList(), player.Origin)[0]);
+                        else
+                            player.SetField("best_dist_package", Entity.GetEntity(2048));
+
+                        foreach (Entity crate in Crates.Keys)
+                        {
+                            if (!((Entity)Crates[crate]["owner"]).IsPlayer || ((Entity)Crates[crate]["owner"]).HasField("juggernaut"))
+                                DeleteCrate(crate);
+                        }
+
+                        if (player.Origin.DistanceTo(player.GetField<Entity>("best_dist_package").Origin) <= 120 &&
+                           player.IsAlive &&
+                           !player.HasField("juggernaut"))
+                        {
+                            if (((Entity)Crates[player.GetField<Entity>("best_dist_package")]["owner"]) == player)
+                            {
+                                if (player.GetField<string>("SessionTeam") == "axis")
+                                    return true;
+
+                                if (player.Call<int>("UseButtonPressed") == 1)
+                                {
+                                    Crates[player.GetField<Entity>("best_dist_package")]["isUse"] = 1;
+
+                                    Crates[player.GetField<Entity>("best_dist_package")]["useRate"] = (((int)Crates[player.GetField<Entity>("best_dist_package")]["useRate"]) + 1);
+
+                                    if ((int)Crates[player.GetField<Entity>("best_dist_package")]["useRate"] == 1)
+                                    {
+                                        foreach (HudElem bars in ProgressBarForPlayer[player].Values)
+                                            bars.Alpha = 1;
+
+                                        player.UpdateBarScale(ProgressBarForPlayer[player]["Progress"], 0.8f);
+
+                                        player.Call("PlayerLinkTo", player.GetField<Entity>("best_dist_package"));
+                                        player.Call("PlayerLinkedOffsetEnable");
+                                        player.Call("DisableWeapons");
+
+                                        return true;
+                                    }
+                                    else if ((int)Crates[player.GetField<Entity>("best_dist_package")]["useRate"] == 10)
+                                    {
+                                        foreach (HudElem bars in ProgressBarForPlayer[player].Values)
+                                            bars.Alpha = 0;
+
+                                        player.Call("Unlink");
+                                        player.Call("EnableWeapons");
+
+                                        player.Call("PlayLocalSound", "ammo_crate_use");
+
+                                        switch (Crates[player.GetField<Entity>("best_dist_package")]["streakName"])
+                                        {
+                                            case "helicopter":
+                                                AmmoBox(player);
+                                                break;
+                                            case "airdrop_assault":
+                                                Sniper(player);
+                                                break;
+                                            case "airdrop_juggernaut":
+                                                Juggernaut(player);
+                                                break;
+                                            case "deployable_vest":
+                                                BallisticVest(player);
+                                                break;
+                                            default:
+
+                                                break;
+                                        }
+
+                                        DeleteCrate(player.GetField<Entity>("best_dist_package"));
+                                        return true;
+                                    }
+                                }
+                                else
+                                {
+                                    Crates[player.GetField<Entity>("best_dist_package")]["useRate"] = 0;
+
+                                    foreach (HudElem bars in ProgressBarForPlayer[player].Values)
+                                        bars.Alpha = 0;
+
+                                    player.Call("Unlink");
+                                    player.Call("EnableWeapons");
+                                }
+                            }
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                }
+                catch
+                { 
+
+                }
+                return true;
+            });
+        }
+
+        private List<Entity> SortByDistance(List<Entity> array, Vector3 origin)
+        {
+            Dictionary<Entity, float> distances = new Dictionary<Entity, float>();
+
+            foreach (Entity target in array)
+                distances.Add(target, target.Origin.DistanceTo(origin));
+
+            return distances.OrderBy(x => x.Value).Select(x => x.Key).ToList();
         }
 
         public void PhysCP(Entity owner, Vector3 sourcePos, Vector3 force, string model = "com_plasticcase_friendly", string streakName = "", bool solid = true)
@@ -58,7 +202,7 @@ namespace InfectedServer.KILLSTREAKS
             Vector3 nowPos = new Vector3();
             OnInterval(500, () =>
             {
-                if (!drop_crate.GetField<Entity>("owner").IsPlayer)
+                if (!((Entity)Crates[drop_crate]["owner"]).IsPlayer)
                     return false;
 
                 if (oldPos.DistanceTo(nowPos) < 5)
@@ -79,104 +223,22 @@ namespace InfectedServer.KILLSTREAKS
         public void InitCrate(Entity crate)
         {
             crate.Call("setCursorHint", "HINT_NOICON");
-            crate.Call("setHintString", GetHintText(crate.GetField<string>("streakName")));
+            crate.Call("setHintString", GetHintText(((string)Crates[crate]["streakName"])));
             crate.Call("makeUsable");
-
-            byte useRate = 0;
-            int time = 600;
-            Entity owner = crate.GetField<Entity>("owner");
-
-            Dictionary<string, HudElem> BARS = owner.CreateBar();
-            HudElem WayPoint = HUDClass.HeadIcon(crate.Origin, owner, GetCrateIcon(crate.GetField<string>("streakName")));
-
-            OnInterval(100, () =>
-            {
-                time--;
-
-                if (!owner.IsAlive || !owner.IsPlayer || time == 0 || owner.HasField("juggernaut"))
-                {
-                    DeleteCrate(crate, WayPoint, BARS);
-                    return false;
-                }
-
-                if (crate.Origin.DistanceTo(owner.Origin) <= 120 &&
-                owner.IsAlive &&
-                owner.GetField<string>("SessionTeam") == "allies" &&
-                owner.Call<int>("UseButtonPressed") == 1)
-                {
-                    useRate++;
-                    if (useRate == 1)
-                    {
-                        foreach (HudElem bars in BARS.Values)
-                            bars.Alpha = 1;
-
-                        owner.UpdateBarScale(BARS["Progress"], 0.8f);
-
-                        owner.Call("PlayerLinkTo", crate);
-                        owner.Call("PlayerLinkedOffsetEnable");
-                        owner.Call("DisableWeapons");
-
-                        return true;
-                    }
-                    else if (useRate == 10)
-                    {
-                        foreach (HudElem bars in BARS.Values)
-                            bars.Alpha = 0;
-
-                        owner.Call("Unlink");
-                        owner.Call("EnableWeapons");
-
-                        owner.Call("PlayLocalSound", "ammo_crate_use");
-
-                        switch (crate.GetField<string>("streakName"))
-                        {
-                            case "airdrop_assault":
-                                Sniper(owner);
-                                break;
-                            case "airdrop_juggernaut":
-                                Juggernaut(owner);
-                                break;
-                            case "helicopter":
-                                AmmoBox(owner);
-                                break;
-                            case "deployable_vest":
-                                BallisticVest(owner);
-                                break;
-                            default:
-                                
-                                break;
-                        }
-
-                        DeleteCrate(crate, WayPoint, BARS);
-                        return false;
-                    }
-                }
-                else
-                {
-                    foreach (HudElem bars in BARS.Values)
-                        bars.Alpha = 0;
-
-                    owner.Call("Unlink");
-                    owner.Call("EnableWeapons");
-
-                    useRate = 0;
-
-                    return true;
-                }
-
-                return true;
-            });
+            Crates[crate].Add("wayPoint", HUDClass.HeadIcon(crate.Origin, ((Entity)Crates[crate]["owner"]), GetCrateIcon(((string)Crates[crate]["streakName"]))));
         }
 
-        public void DeleteCrate(Entity crate, HudElem wayPoint, Dictionary<string, HudElem> progressBar)
+        public void DeleteCrate(Entity crate)
         {
             crate.Call("Delete");
-            wayPoint.Call("Destroy");
 
-            foreach (var pg in progressBar.Values)
-                pg.Call("Destroy");
+            ((HudElem)Crates[crate]["wayPoint"]).Call("Destroy");
+
+            foreach (HudElem bars in ProgressBarForPlayer[((Entity)Crates[crate]["owner"])].Values)
+                bars.Alpha = 0;
+
+            Crates.Remove(crate);
         }
-
         public void BallisticVest(Entity self)
         {
             Notify("set_vest_armor", self);
@@ -220,7 +282,6 @@ namespace InfectedServer.KILLSTREAKS
                 });
             });
         }
-
         public void AmmoBox(Entity self)
         {
             self.Health = 100;
@@ -268,7 +329,6 @@ namespace InfectedServer.KILLSTREAKS
                 });
             });
         }
-
         public void Sniper(Entity self)
         {
             string AssaultWeapon = BuildWeapon(WeaponClass.Type.AssaultRifle, 5);
@@ -314,7 +374,6 @@ namespace InfectedServer.KILLSTREAKS
                 });
             });
         }
-
         public void Juggernaut(Entity self)
         {
             Notify("set_juggernaut_armor", self);
@@ -353,17 +412,6 @@ namespace InfectedServer.KILLSTREAKS
 
                 self.SetPerk("specialty_radarjuggernaut", true, true);
 
-                self.SetClientDvar("r_filmtweaks", "1");
-                self.SetClientDvar("r_filmUseTweaks", "1");
-                self.SetClientDvar("r_filmTweakEnable", "1");
-
-                self.SetClientDvar("r_filmtweakcontrast", "1.3");
-                self.SetClientDvar("r_filmtweakdarktint", "1.3 1.0 1.0");
-                self.SetClientDvar("r_filmtweaklighttint", "1.3 1.0 1.0");
-                self.SetClientDvar("r_filmtweakdesaturation", "0.1");
-
-                self.SetClientDvar("r_filmTweakBrightness", "0.1");
-
                 AfterDelay(750, () =>
                 {
                     Notify("ShowStreakHUD", self, "All Specialist Perks", GetKillstreakDpadIcon("all_perks_bonus"), "All Proficiency!", "achieve_specialty_bonus", "mp_bonus_start");
@@ -374,7 +422,6 @@ namespace InfectedServer.KILLSTREAKS
                 });
             });
         }
-
         public void Say(Entity self, string messageFriendly, string messageEnemy)
         {
             for (int i = 0; i < 18; i++)

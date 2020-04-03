@@ -19,8 +19,6 @@ namespace InfectedServer
             Function.Call("PreCacheShader", "iw5_cardicon_juggernaut_a");
 
             Function.Call("PreCacheItem", "at4_mp");
-            Function.Call("PreCacheItem", "turret_minigun_mp");
-            Function.Call("PreCacheTurret", "turret_minigun_mp");
 
             InitializateMapping();
         }

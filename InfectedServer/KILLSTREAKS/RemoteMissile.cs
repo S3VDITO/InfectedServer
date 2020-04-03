@@ -11,12 +11,13 @@ namespace InfectedServer.KILLSTREAKS
 {
 	public class RemoteMissile : BaseScript
 	{
-		private static Entity UAV_MODEL;
+		public static Entity UAV_MODEL;
 		private static int Duration = 15;
 
 		public RemoteMissile()
 		{
 			Call("precacheShader", "ac130_overlay_105mm");
+
 			OnNotify("spawn_uav", () => SpawnUAV());
 
 			OnNotify("remote_mortar", (player) => RideUAV(player.As<Entity>()));
@@ -40,93 +41,22 @@ namespace InfectedServer.KILLSTREAKS
 
 		public void RideUAV(Entity player)
 		{
-			player.SetField("is_rider_missile_cam", 0);
-
 			player.TeamPlayerCardSplash("used_remote_mortar", "remote_mortar");
 
 			player.Call("ThermalVisionFOFOverlayOn");
 			player.Call("ThermalVisionOn");
 
-			HudElem timer = Timer(player, Duration);
 			AttachPlayer(player);
 			Overlay(player);
 			ShotFiredDarkScreenOverlay(player);
 
-			UAVShotingWaiter(player, timer);
-			UAVUseWaiter(player, timer);
+			UAVShotingWaiter(player);
 		}
 
 		public void AttachPlayer(Entity player)
 		{
 			player.Call("PlayerLinkWeaponviewToDelta", UAV_MODEL, "tag_player", 1.0f, 40, 40, 25, 40);
 			AfterDelay(250, () => player.Call("SetPlayerAngles", Function.Call<Vector3>("vectorToAngles", UAV.Origin - player.Call<Vector3>("GetEye"))));
-		}
-
-		public void UAVUseWaiter(Entity player, HudElem timer)
-		{
-			float dur = Duration;
-			OnInterval(500, () =>
-			{
-				dur -= 0.5f;
-
-				if (!player.IsAlive)
-				{
-					UAVEnd(player);
-					timer.Call("Destroy");
-					player.GetField<HudElem>("overlay_uav_ac130_105mm").Call("destroy");
-					return false;
-				}
-
-				if (dur == 0)
-				{
-					UAVEnd(player);
-					FireMissile(player);
-					timer.Call("Destroy");
-					player.GetField<HudElem>("overlay_uav_ac130_105mm").Call("destroy");
-					return false;
-				}
-
-				if (player.GetField<int>("is_rider_missile_cam") == 1)
-					return false;
-
-				return player.IsAlive && player.IsPlayer && player.CurrentWeapon == GetKillstreakWeapon("predator_missile");
-			});
-		}
-
-		public void UAVEnd(Entity player)
-		{
-			if (player.IsAlive && player.IsPlayer && player.CurrentWeapon == GetKillstreakWeapon("predator_missile"))
-				return;
-
-			player.Call("UnLink");
-
-			player.Call("ThermalVisionOff");
-			player.Call("ThermalVisionFOFOverlayOff");
-			player.Call("setBlurForPlayer", 0, 0);
-
-			player.Call("EnableOffhandWeapons");
-			player.Call("EnableWeaponSwitch");
-			player.Call("EnableWeapons");
-
-			player.Call("CameraUnlink");
-
-			player.TakeWeapon(GetKillstreakWeapon("predator_missile"));
-			player.SwitchToWeapon(player.GetField<string>("lastDroppableWeapon"));
-		}
-
-		public HudElem Timer(Entity player, int duration)
-		{
-			HudElem timer = HudElem.NewClientHudElem(player);
-			timer.X = -100;
-			timer.Y = 0;
-			timer.AlignX = "right";
-			timer.AlignY = "bottom";
-			timer.HorzAlign = "right_adjustable";
-			timer.VertAlign = "bottom_adjustable";
-			timer.FontScale = 2.5f;
-			timer.Call("SetTimer", duration);
-			timer.Alpha = 1;
-			return timer;
 		}
 
 		public void Overlay(Entity player)
@@ -145,56 +75,98 @@ namespace InfectedServer.KILLSTREAKS
 			player.SetField("overlay_uav_ac130_105mm", new Parameter(overlay));
 		}
 
-		public void UAVShotingWaiter(Entity player, HudElem timer)
+		public void UAVShotingWaiter(Entity player)
 		{
+			player.Call("DisableOffhandWeapons");
+			player.Call("DisableWeaponSwitch");
+
 			OnInterval(100, () =>
 			{
 				if (player.Call<int>("attackbuttonpressed") == 1)
 				{
-					FireMissile(player);
-					timer.Call("Destroy");
+					ShotFiredDarkScreenOverlay(player);
+
+					Entity missile = Call<Entity>("magicBullet", 
+						"remotemissile_projectile_mp",
+						UAV_MODEL.Origin - new Vector3(0, 0, 25), 
+						Call<Vector3>("anglestoforward", player.Call<Vector3>("getplayerangles")) * 15000,
+						player);
+
+					MissileEyes(player, missile);
+
 					player.GetField<HudElem>("overlay_uav_ac130_105mm").Call("destroy");
 					return false;
 				}
-				return player.IsAlive && player.IsPlayer && player.CurrentWeapon == GetKillstreakWeapon("predator_missile");
+				return player.IsAlive && player.IsPlayer;
 			});
 		}
 
-		public void FireMissile(Entity player)
+		public void MissileEyes(Entity player, Entity rocket)
 		{
-			player.SetField("is_rider_missile_cam", 1);
+			player.Call("unlink");
 
-			Vector3 asd = Call<Vector3>("anglestoforward", player.Call<Vector3>("getplayerangles"));
-			Vector3 end = new Vector3(asd.X * 15000, asd.Y * 15000, asd.Z * 15000);
+			player.Call("VisionSetMissileCamForPlayer", "black_bw", 0);
 
-			ShotFiredDarkScreenOverlay(player);
-			player.GetField<HudElem>("overlay_uav_ac130_105mm").Call("destroy");
+			if (!player.IsPlayer)
+				return;
 
-			player.Call("Unlink");
+			player.Call("CameraLinkTo", rocket, "tag_origin");
+			player.Call("ControlsLinkTo", rocket);
 
-			AfterDelay(250, () =>
+			rocket.OnNotify("death", ent =>
 			{
-				Entity missile = Call<Entity>("magicBullet", "remotemissile_projectile_mp", UAV_MODEL.Origin - new Vector3(0, 0, 25), end, player);
+				if (rocket.HasField("delete"))
+					return;
 
-				missile.Call("setCanDamage", true);
+				rocket.SetField("delete", 1);
+				player.Call("ControlsUnlink");
+				player.Call("FreezeControls", true);
+				StaticEffect(player, 500);
 
-				player.Call("CameraLinkTo", missile, "tag_origin");
-				player.Call("ControlsLinkTo", missile);
-
-				missile.OnNotify("death", (rocket) =>
+				AfterDelay(500, () =>
 				{
-					player.Call("ControlsUnlink");
-					player.Call("freezeControls", true);
+					player.Call("ThermalVisionFOFOverlayOff");
+					player.Call("ThermalVisionOff");
+					player.Call("CameraUnlink");
+					StopUsingRemote(player);
 
-					ShotFiredDarkScreenOverlay(player);
+					player.Call("EnableOffhandWeapons");
+					player.Call("EnableWeaponSwitch");
+					player.Call("EnableWeapons");
 
-					AfterDelay(500, () =>
-					{
-						player.SetField("is_rider_missile_cam", 0);
-						UAVEnd(player);
-					});
+					player.TakeWeapon(GetKillstreakWeapon("predator_missile"));
+					player.SwitchToWeapon(player.GetField<string>("lastDroppableWeapon"));
 				});
+
 			});
+
+		}
+
+		private void StaticEffect(Entity player, int duration)
+		{
+			if (!player.IsPlayer) 
+				return;
+
+			HudElem staticBG = HudElem.NewClientHudElem(player);
+			staticBG.HorzAlign = "Fullscreen";
+			staticBG.VertAlign = "Fullscreen";
+			staticBG.SetShader("white", 640, 480);
+			staticBG.Archived = true;
+			staticBG.Sort = 10;
+
+			HudElem staticFG = HudElem.NewClientHudElem(player);
+			staticFG.HorzAlign = "Fullscreen";
+			staticFG.VertAlign = "Fullscreen";
+			staticFG.SetShader("ac130_overlay_grain", 640, 480);
+			staticFG.Archived = true;
+			staticFG.Sort = 20;
+			AfterDelay(duration, () =>
+			{
+				staticFG.Call("Destroy");
+				staticBG.Call("Destroy");
+			});
+
+			return;
 		}
 
 		public void ShotFiredDarkScreenOverlay(Entity player)
@@ -210,9 +182,9 @@ namespace InfectedServer.KILLSTREAKS
 			darkScreenOverlay.Sort = -10;
 			darkScreenOverlay.Alpha = 1;
 
-			AfterDelay(500, () =>
+			AfterDelay(1000, () =>
 			{
-				darkScreenOverlay.Call("fadeOverTime", 0.5f);
+				darkScreenOverlay.Call("fadeOverTime", 1f);
 				darkScreenOverlay.Alpha = 0;
 				AfterDelay(500, () => darkScreenOverlay.Call("destroy"));
 			});

@@ -22,9 +22,13 @@ namespace InfectedServer
             Function.AddMapping("SetMaxPitchRoll", 33379);
             Function.AddMapping("SetVehGoalPos", 33325);
             Function.AddMapping("SetSpeedImmediate", 33364);
-
+            Function.AddMapping("SetGoalYaw", 33326);
             Function.AddMapping("SetTurretTargetEnt", 33332);
             Function.AddMapping("FireWeapon", 33338);
+
+            Function.AddMapping("WorldPointInReticle_Circle", 33270);
+
+            Function.AddGlobalMapping("IsDefined", 33270);
         }
 
         public static void InitializateLevel()
@@ -58,6 +62,8 @@ namespace InfectedServer
 
         public static class INFO
         {
+            public static List<Entity> Turrets = new List<Entity>();
+
             public static Entity UAV;
 
             public static Entity AC130_LEVEL;
@@ -79,6 +85,7 @@ namespace InfectedServer
             public static int MAX_TURRET_COUNT_ON_LEVEL = 32;
 
             public static float AIR_HEIGHT = Function.Call<Entity>("GetEnt", "airstrikeheight", "targetname").Origin.Z;
+
             public static float GET_Z_ORIGIN()
             {
                 if (VEHICLES.Count == 0)
@@ -156,10 +163,17 @@ namespace InfectedServer
             { return Function.Call<string>("TableLookup", "mp/factionTable.csv", 0, teamRef, 7); }
 
             public static void SetUsingRemote(Entity self)
-            { self.Notify("using_remote"); }
+            {
+                self.Call("DisableOffhandWeapons");
+                self.Notify("using_remote"); 
+            }
 
             public static void StopUsingRemote(Entity self)
-            { self.Notify("stopped_using_remote"); }
+            {
+                self.Call("FreezeControls", false);
+                self.Call("EnableOffhandWeapons");
+                self.Notify("stopped_using_remote");
+            }
         }
     }
 }

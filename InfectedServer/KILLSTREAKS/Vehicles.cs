@@ -12,50 +12,12 @@ namespace InfectedServer.KILLSTREAKS
     {
         public Vehicles()
         {
-            OnNotify("cobra", (owner, pos) => CallCobra(owner.As<Entity>(), pos.As<Vector3>()));
-            OnNotify("harrier", (owner, pos) => CallHarrier(owner.As<Entity>(), pos.As<Vector3>()));
-
             // C130 Jugg
             OnNotify("jugg", (owner, pos) => C130_START(owner.As<Entity>(), pos.As<Vector3>()));
 
             // Osprey Jugg
            // OnNotify("jugg", (owner, pos) => CallOsprey(owner.As<Entity>(), pos.As<Vector3>()));
         }
-
-        #region COBRA
-        public Entity COBRA_SETUP(Entity self, Vector3 startPos, Vector3 forward)
-        {
-            Entity cobra = Function.Call<Entity>("SpawnHelicopter", self, startPos, forward, "cobra_mp", "vehicle_mi24p_hind_mp");
-            cobra.Call("SetMaxPitchRoll", 45, 85);
-            cobra.Call("SetYawSpeed", 120, 80);
-            cobra.Call("SetSpeed", 130, 125);
-            return cobra;
-        }
-
-        public void CallCobra(Entity self, Vector3 goalPos)
-        {
-            float yaw = Function.Call<float>("RandomFloat", 360);
-            Vector3 startPos = GetPathStart(goalPos, yaw);
-            Vector3 endPos = new Vector3(goalPos.X, goalPos.Y, AIR_HEIGHT);
-
-            Entity cobra = COBRA_SETUP(self, GetPathStart(goalPos, yaw), new Vector3(0, yaw, 0));
-            cobra.Call("SetVehGoalPos", endPos, true);
-
-            cobra.OnInterval(500, heli => 
-            {
-                if (cobra.Origin.DistanceTo2D(goalPos) <= 50)
-                {
-                    Notify("run_crate", self, new Vector3(goalPos.X, goalPos.Y, cobra.Origin.Z), new Vector3(), "com_deploy_ballistic_vest_friend_world", "helicopter", false);
-                    cobra.Call("SetSpeed", 130, 125);
-                    cobra.Call("SetVehGoalPos", GetPathEnd(goalPos, yaw + 60), true);
-                    AfterDelay(7500, () => cobra.Call("Delete"));
-
-                    return false;
-                }
-                return true;
-            });
-        }
-        #endregion
 
         #region C130
         public Entity C130_SETUP(Entity owner, Vector3 start)
@@ -87,60 +49,6 @@ namespace InfectedServer.KILLSTREAKS
             });
             AfterDelay(15000, () => { c130.Call("delete"); });
         }
-        #endregion
-
-        #region Harrier
-        public Entity HARRIER_SETUP(Entity self, Vector3 startPos, Vector3 forward)
-        {
-            Entity harrier = Function.Call<Entity>( "SpawnHelicopter", self, startPos, forward, "harrier_mp", "vehicle_av8b_harrier_jet_opfor_mp");
-            harrier.Call("SetHoverParams", 50, 100, 50);
-            harrier.Call("SetTurningAbility", .05f);
-            harrier.Call("SetYawSpeed", 250, 250, 250, .5f);
-            harrier.Call("SetSpeed", 250, 175);
-            harrier.Call("SetMaxPitchRoll", 0, 0);
-            return harrier;
-        }
-
-        public void CallHarrier(Entity self, Vector3 goalPos)
-        {
-            self.TeamPlayerCardSplash("", "airdrop_assault");
-            Single yaw = Function.Call<float>("RandomFloat", 360);
-            Entity harrier = HARRIER_SETUP(self, GetPathStart(goalPos, yaw), new Vector3(0, yaw, 0));
-            harrier.Call("SetVehGoalPos", new Vector3(goalPos.X, goalPos.Y, AIR_HEIGHT), true);
-
-            AfterDelay(6500, () =>
-            {
-                Notify("run_crate", self, harrier.Origin, new Vector3(0, 0, 0), "com_plasticcase_friendly", "airdrop_assault", true);
-                harrier.Call("SetMaxPitchRoll", 20, 30);
-                AfterDelay(1000, () =>
-                {
-
-                    harrier.Call("SetSpeed", 150, 125);
-                    harrier.Call("SetVehGoalPos", GetPathEnd(goalPos, yaw), true);
-                    OnInterval(1000, () =>
-                    {
-                        if (harrier.HasField("death"))
-                        {
-                            Function.Call("StopFXOnTag", Function.Call<int>("LoadFX", "fire/jet_afterburner"), harrier, "tag_engine_right");
-                            Function.Call("StopFXOnTag", Function.Call<int>("LoadFX", "fire/jet_afterburner"), harrier, "tag_engine_left");
-                            Function.Call("StopFXOnTag", Function.Call<int>("LoadFX", "smoke/jet_contrail"), harrier, "tag_left_wingtip");
-                            Function.Call("StopFXOnTag", Function.Call<int>("LoadFX", "smoke/jet_contrail"), harrier, "tag_right_wingtip");
-                            return false;
-                        }
-                        else
-                        {
-                            Function.Call("PlayFXOnTag", Function.Call<int>("LoadFX", "fire/jet_afterburner"), harrier, "tag_engine_right");
-                            Function.Call("PlayFXOnTag", Function.Call<int>("LoadFX", "fire/jet_afterburner"), harrier, "tag_engine_left");
-                            Function.Call("PlayFXOnTag", Function.Call<int>("LoadFX", "smoke/jet_contrail"), harrier, "tag_left_wingtip");
-                            Function.Call("PlayFXOnTag", Function.Call<int>("LoadFX", "smoke/jet_contrail"), harrier, "tag_right_wingtip");
-                            return true;
-                        }
-                    });
-                    AfterDelay(5500, () => { harrier.SetField("death", true); harrier.Call("Delete"); });
-                });
-            });
-        }
-
         #endregion
 
         #region Osprey Drop

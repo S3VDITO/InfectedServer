@@ -30,6 +30,12 @@ namespace InfectedServer.KILLSTREAKS
             player.SetField("maxhealth", 500);
             player.SetField("health", 2000);
 
+            AfterDelay(500, () =>
+            {
+                player.SetField("maxhealth", 500);
+                player.SetField("health", 2000);
+            });
+
             AfterDelay(2500, () =>
             {
                 player.SetField("maxhealth", 500);
