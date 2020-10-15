@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="InfinityScript">
-      <HintPath>..\..\..\..\..\..\..\Games\Call of Duty - Modern Warfare 3\InfinityScript.dll</HintPath>
+      <HintPath>..\..\InfinityScript\InfinityScript\bin\Debug\InfinityScript.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -43,33 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AntiCampClass.cs" />
-    <Compile Include="DebugClass.cs" />
-    <Compile Include="GamePlay.cs" />
-    <Compile Include="HUDClass.cs" />
-    <Compile Include="InitializateClass.cs" />
-    <Compile Include="KILLSTREAKS\AC130.cs" />
-    <Compile Include="KILLSTREAKS\Apache.cs" />
-    <Compile Include="KILLSTREAKS\CarePackage.cs" />
-    <Compile Include="KILLSTREAKS\Cobra.cs" />
-    <Compile Include="KILLSTREAKS\DamageFeedBack.cs" />
-    <Compile Include="KILLSTREAKS\Harrier.cs" />
-    <Compile Include="KILLSTREAKS\Juggernaut.cs" />
-    <Compile Include="KILLSTREAKS\Laptop.cs" />
-    <Compile Include="KILLSTREAKS\PaveLow.cs" />
-    <Compile Include="KILLSTREAKS\Perks.cs" />
-    <Compile Include="KILLSTREAKS\RemoteMissile.cs" />
-    <Compile Include="KILLSTREAKS\SignalGrenade.cs" />
-    <Compile Include="KILLSTREAKS\Vehicles.cs" />
-    <Compile Include="KILLSTREAKS\VestArmor.cs" />
-    <Compile Include="MapClass.cs" />
-    <Compile Include="SoundClass.cs" />
-    <Compile Include="LevelClass.cs" />
-    <Compile Include="MemoryClass.cs" />
-    <Compile Include="ModelClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WeaponClass.cs" />
-    <Compile Include="WEAPONS\Stinger.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
