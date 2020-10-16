@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // набора атрибутов. Измените значения этих атрибутов для изменения сведений,
 // связанные со сборкой.
 [assembly: AssemblyTitle("InfectedServer")]
-[assembly: AssemblyDescription("InfectedServer v1.5 by S3VDITO")]
+[assembly: AssemblyDescription("InfectedServer v2.0 by S3VDITO")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("S3 Home")]
 [assembly: AssemblyProduct("InfectedServer")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // Можно задать все значения или принять номера сборки и редакции по умолчанию 
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.5.5")]
-[assembly: AssemblyFileVersion("1.5.5")]
+[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: AssemblyFileVersion("2.0.0.0")]

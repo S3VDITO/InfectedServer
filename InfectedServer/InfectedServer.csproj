@@ -43,7 +43,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extension\EntityExtension.cs" />
+    <Compile Include="Extension\RandomWeapon.cs" />
+    <Compile Include="InfectedServer.cs" />
+    <Compile Include="Player\PlayerModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Player\Player.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Streak\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
