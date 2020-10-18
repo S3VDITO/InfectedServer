@@ -7,90 +7,92 @@ using static InfinityScript.ThreadScript;
 
 namespace InfectedServer
 {
-    public class Player : PlayerModel
+    public class Player
     {
-        public event Action<Player> SpawnedPlayer;
+        public Dictionary<string, string> Loadout { get; }
 
-        public Player(Entity player) : base(player, new Dictionary<string, string>()
+        public Entity Entity { get; }
+
+        public int ID 
         {
-            ["allies_weapon_primary"] = RandomWeapon.GenerateWeapon(RandomWeapon.RifleType.ShotGun),
-            ["allies_weapon_secondary"] = RandomWeapon.GenerateWeapon(RandomWeapon.RifleType.Pistol),
-            ["allies_grenade_primaryGrenade"] = "",
-            ["allies_grenade_secondaryGrenade"] = "",
-        })
+            get => Entity.EntRef;
+        }
+        public long GUID 
+        {
+            get => Entity.GUID;
+        }
+        public string Name 
+        { 
+            get => Entity.Name;
+            set => Entity.Name = value;
+        }
+        public string ClanTag
+        {
+            get => Entity.ClanTag;
+            set => Entity.ClanTag = value;
+        }
+
+        public int KillStreak { get; set; } = 0;
+        public int DeathStreak { get; set; } = 0;
+
+        public event Action PlayerSpawned;
+
+        public Player(Entity player, Dictionary<string, string> loadout)
         {
             if (!player.IsPlayer)
-            {
-                Log.Error("Player(Entity) - Entity is not player!");
-                return;
-            }
+                throw new Exception($"{player.EntRef} is not player!");
 
-            ServerData.Players.Add(this);
+            Entity = player;
+            Loadout = loadout;
 
-            #region SpawnedPlayer
-            Thread(spawnedPlayer(), (entRef, notify, paras) =>
+            #region PlayerSpawned event handling
+            Thread(playerSpawned(), (entRef, notify, paras) =>
             {
-                if (entRef == Entity.EntRef && notify == "disconnect")
-                {
-                    ServerData.Players.Remove(this);
+                if (notify == "disconnect" && player.EntRef == entRef)
                     return false;
-                }
 
                 return true;
             });
-            IEnumerator spawnedPlayer()
+
+            IEnumerator playerSpawned()
             {
                 while (true)
-                    yield return Entity.WaitTill("spawned_player", (paras) => SpawnedPlayer?.Invoke(this));
+                    yield return player.WaitTill("spawned_player", paras => PlayerSpawned?.Invoke());
             }
             #endregion
         }
 
-        public void GiveKit()
-        {
-            if (IsHuman)
-                Thread(GiveHumanPack());
+        public void GiveWeapon(string weaponName) => Entity.GiveWeapon(weaponName);
+        public void GiveWeapon(string weaponName, int indexCamo) => Entity.GiveWeapon(weaponName, indexCamo);
+        public void GiveWeapon(string weaponName, int indexCamo, bool akimbo) => Entity.GiveWeapon(weaponName, indexCamo, akimbo);
 
-            if (IsInfected)
-                Thread(GiveInfectPack());
+        public void SetOrigin(Vector3 origin) => Entity.SetOrigin(origin);
+
+        public void SetPerk(string perkName) => Entity.SetPerk(perkName);
+        public void SetPerk(string perkName, bool codePerk) => Entity.SetPerk(perkName, codePerk);
+        public void SetPerk(string perkName, bool codePerk, bool useSlot) => Entity.SetPerk(perkName, codePerk, useSlot);
+
+        public void SetPlayerAngles(Vector3 angles) => Entity.SetPlayerAngles(angles);
+
+        public void SetViewModel(string viewModel) => Entity.SetViewModel(viewModel);
+        public void SetBodyModel(string bodyModel) => Entity.SetModel(bodyModel);
+        public void SetHeadModel(string headModel)
+        {
+            
         }
 
-        private IEnumerator GiveHumanPack()
+        public void SetPlayerModel(string handModel, string bodyModel)
         {
-            Entity.TakeAllWeapons();
-
-            yield return Wait(.5f);
-
-            Entity.GiveWeapon(Kit["allies_weapon_primary"]);
-            Entity.SwitchToWeapon(Kit["allies_weapon_primary"]);
-
-            Entity.GiveWeapon(Kit["allies_weapon_secondary"]);
-
-            Entity.GivePrimaryOffhand(Kit["allies_grenade_primaryGrenade"]);
-            Entity.GiveSecondaryOffhand(Kit["allies_grenade_secondaryGrenade"]);
+            SetViewModel(handModel);
+            SetBodyModel(bodyModel);
+        }
+        public void SetPlayerModel(string handModel, string bodyModel, string headModel)
+        {
+            SetViewModel(handModel);
+            SetBodyModel(bodyModel);
+            SetHeadModel(headModel);
         }
 
-        private IEnumerator GiveInfectPack()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void IncKillStreak()
-        {
-            KillStreaks++;
-        }
-        public void RemoveKillStreak()
-        {
-            KillStreaks = 0;
-        }
-
-        public void IncDeathStreak()
-        {
-            DeathStreaks++;
-        }
-        public void RemoveDeathStreak()
-        {
-            DeathStreaks = 0;
-        }
+        public void Suicie() => Entity.Suicide();
     }
 }

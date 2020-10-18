@@ -13,6 +13,7 @@ namespace InfectedServer
     {
         public InfectedServer()
         {
+            /*
             Utilities.PrintToConsole("###############################");
             Utilities.PrintToConsole("InfectedServer by S3VDITO");
             Utilities.PrintToConsole("Source code: ....");
@@ -23,36 +24,17 @@ namespace InfectedServer
             Utilities.PrintToConsole("Source code: ....");
             Utilities.PrintToConsole("###############################");
             Utilities.PrintToConsole("\n\n");
+            */
+            PlayerConnected += new Action<Entity>(entity =>
+            {
+                Player player = new Player(entity, new Dictionary<string, string>());
+                ServerData.Players.Add(player);
+            });
 
-            PlayerConnected += OnPlayerConnected;
-        }
-
-        private void OnPlayerConnected(Entity entity)
-        {
-            Player player = new Player(entity);
-            player.GiveKit();
-
-            player.SpawnedPlayer += OnPlayerSpawned;
-        }
-
-        private void OnPlayerSpawned(Player player)
-        {
-            player.GiveKit();
-        }
-
-        public override string OnPlayerRequestConnection(string playerName, string playerHWID, string playerXUID, string playerIP, string playerSteamID, string playerXNAddress)
-        {
-            return base.OnPlayerRequestConnection(playerName, playerHWID, playerXUID, playerIP, playerSteamID, playerXNAddress);
-        }
-
-        public override void OnPlayerKilled(Entity player, Entity inflictor, Entity attacker, int damage, string mod, string weapon, Vector3 dir, string hitLoc)
-        {
-            base.OnPlayerKilled(player, inflictor, attacker, damage, mod, weapon, dir, hitLoc);
-        }
-
-        public override void OnPlayerDamage(Entity player, Entity inflictor, Entity attacker, int damage, int dFlags, string mod, string weapon, Vector3 point, Vector3 dir, string hitLoc)
-        {
-            base.OnPlayerDamage(player, inflictor, attacker, damage, dFlags, mod, weapon, point, dir, hitLoc);
+            PlayerDisconnected += new Action<Entity>(entity =>
+            {
+                ServerData.Players.Remove(ServerData.Players.Where(p => p.GUID == entity.GUID).First());
+            });
         }
 
         public override void OnSay(Entity player, string name, string message)
@@ -61,10 +43,10 @@ namespace InfectedServer
             {
                 case "info":
                     Utilities.PrintToConsole($"Players info:");
-                    Utilities.PrintToConsole($"ID  ClanTag  UserName");
+                    Utilities.PrintToConsole($"ID  ClanTag  UserName GUID");
                     foreach (Player p in ServerData.Players)
                     {
-                        Utilities.PrintToConsole($"{p.Entity.EntRef} {p.Entity.ClanTag} {p.Entity.Name}");
+                        Utilities.PrintToConsole($"{p.ID} {p.Entity.ClanTag} {p.Name} {p.GUID}");
                     }
                     break;
             }
