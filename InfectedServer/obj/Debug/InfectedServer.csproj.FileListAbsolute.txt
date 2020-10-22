@@ -15,3 +15,7 @@ C:\Users\S3VDITO\Source\Repos\S3VDITO\InfectedServer\InfectedServer\obj\Debug\In
 C:\Users\S3VDITO\Desktop\InfectedServer.auto.dll
 C:\Users\S3VDITO\Desktop\InfectedServer.auto.pdb
 C:\Users\S3VDITO\Source\Repos\S3VDITO\InfectedServer\InfectedServer\obj\Debug\InfectedServer.csproj.CopyComplete
+C:\Users\S3VDITO\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedServer.csprojAssemblyReference.cache
+C:\Users\S3VDITO\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedServer.csproj.CoreCompileInputs.cache
+C:\Users\S3VDITO\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedServer.auto.dll
+C:\Users\S3VDITO\source\repos\InfectedServer\InfectedServer\obj\Debug\InfectedServer.auto.pdb

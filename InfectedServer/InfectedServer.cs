@@ -27,7 +27,7 @@ namespace InfectedServer
             */
             PlayerConnected += new Action<Entity>(entity =>
             {
-                Player player = new Player(entity, new Dictionary<string, string>());
+                Player player = new Player(entity, new PlayerLoadout());
                 ServerData.Players.Add(player);
             });
 
@@ -55,6 +55,6 @@ namespace InfectedServer
 
     public static class ServerData
     {
-        public static List<Player> Players { get; set; } = new List<Player>();
+        internal static List<Player> Players { get; set; } = new List<Player>();
     }
 }

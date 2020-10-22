@@ -6,7 +6,7 @@ using InfinityScript;
 
 namespace InfectedServer
 {
-    public static class EntityExtension
+    internal static class EntityExtension
     {
         private static readonly Dictionary<string, string> SecondaryOffhand = new Dictionary<string, string>()
         {
@@ -38,7 +38,6 @@ namespace InfectedServer
             player.SetOffhandPrimaryClass(PrimaryOffhand[offhandname]);
             player.GiveWeapon(offhandname);
         }
-
         public static void GiveSecondaryOffhand(this Entity player, string offhandname)
         {
             if (!SecondaryOffhand.ContainsKey(offhandname))

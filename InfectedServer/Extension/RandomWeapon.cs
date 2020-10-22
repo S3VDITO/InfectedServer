@@ -833,7 +833,6 @@ namespace InfectedServer
                 string Attachmen_1 = Attachments[WeaponTechName][random.Next(Attachments[WeaponTechName].Count)];
                 string Attachmen_2 = Attachments[WeaponTechName][random.Next(Attachments[WeaponTechName].Count)];
 
-
                 while (AttachmentExclusions[Attachmen_1].Contains(Attachmen_2))
                     Attachmen_2 = Attachments[WeaponTechName][random.Next(Attachments[WeaponTechName].Count)];
 
